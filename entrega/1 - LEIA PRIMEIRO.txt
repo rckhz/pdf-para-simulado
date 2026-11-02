@@ -1,0 +1,39 @@
+SIMULADOS ONLINE - LEIA PRIMEIRO
+================================
+
+Este sistema transforma o PDF de uma prova num simulado online:
+  - você envia o PDF e o sistema recorta cada questão sozinho;
+  - você marca o gabarito (ou envia a foto/PDF do gabarito);
+  - manda o link para os alunos pelo WhatsApp;
+  - os alunos respondem pelo celular ou computador e veem a nota na hora;
+  - você vê as notas e as questões que a turma mais errou.
+
+Você não precisa instalar nenhum programa. Tudo funciona no navegador
+(Chrome, Edge...) com a sua conta Google.
+
+
+QUAL É O SEU CASO?
+------------------
+
+CASO 1 - Alguém já instalou o sistema para você
+   Você só precisa do LINK DO PROFESSOR, que termina em "?professor".
+   O link atual é:
+
+   {{LINK_DO_PROFESSOR}}
+
+   Salve esse link nos favoritos e peça a senha a quem instalou.
+   Depois leia o arquivo "3 - Como usar.txt".
+
+CASO 2 - Você quer instalar na SUA conta Google
+   (assim as provas, imagens e notas ficam no seu Google Drive)
+   Siga o arquivo "2 - Como instalar.txt" (leva uns 10 minutos, uma vez só).
+   Depois leia o arquivo "3 - Como usar.txt".
+
+
+O QUE TEM NESTA PASTA
+---------------------
+  1 - LEIA PRIMEIRO.txt      este arquivo
+  2 - Como instalar.txt      instalação (só para o caso 2)
+  3 - Como usar.txt          o dia a dia: criar simulado, gabarito, link, notas
+  arquivos do sistema/       os arquivos que são copiados na instalação
+                             (não precisa abrir se estiver no caso 1)

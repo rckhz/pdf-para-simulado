@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Saídas geradas (recriadas a qualquer momento)
+saida/
+*.zip
+
+# Provas e gabaritos: conteúdo de terceiros (não publicar)
+*.pdf
+simulado_extraido/

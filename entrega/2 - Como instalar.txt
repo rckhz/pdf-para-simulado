@@ -1,0 +1,80 @@
+COMO INSTALAR (uma vez só, cerca de 10 minutos)
+===============================================
+
+Use a conta Google em que você quer guardar as provas e as notas.
+Dica: faça a instalação no computador, não no celular.
+
+Na pasta "arquivos do sistema" existem 5 arquivos. Para abrir cada um e
+copiar o conteúdo, clique com o botão direito no arquivo > "Abrir com" >
+"Bloco de Notas". Depois aperte Ctrl+A (seleciona tudo) e Ctrl+C (copia).
+
+
+PASSO 1 - Criar o projeto
+   1. Abra https://script.google.com e entre com a sua conta Google.
+   2. Clique em "Novo projeto".
+   3. Clique em "Projeto sem título" (lá em cima) e dê o nome: Simulados
+
+
+PASSO 2 - Colar o código principal
+   1. No editor já vem aberto um arquivo chamado "Código.gs".
+   2. Apague tudo o que está nele (Ctrl+A e Delete).
+   3. Abra o arquivo "Code.gs" da pasta "arquivos do sistema", copie tudo
+      e cole no "Código.gs".
+
+
+PASSO 3 - Criar os 3 arquivos de página
+   Clique no "+" ao lado da palavra "Arquivos" e escolha "HTML".
+   Digite o nome EXATAMENTE como abaixo (sem ".html", o editor coloca sozinho):
+
+      Professor      -> cole o conteúdo de "Professor.html"
+      Aluno          -> cole o conteúdo de "Aluno.html"
+      Extrator       -> cole o conteúdo de "Extrator.html"
+
+   Em cada um: apague o que vem escrito e cole o arquivo correspondente.
+   O "Extrator" é uma linha só, muito comprida. Isso é normal.
+
+
+PASSO 4 - Configurações
+   1. Clique na engrenagem (Configurações do projeto), no menu da esquerda.
+   2. Marque a caixa "Mostrar o arquivo de manifesto appsscript.json no editor".
+   3. Volte ao editor (ícone "< >"), abra "appsscript.json", apague tudo e cole
+      o conteúdo do arquivo "appsscript.json".
+   4. Clique no disquete (Salvar).
+
+
+PASSO 5 - Dar as permissões
+   1. Lá em cima, ao lado de "Depuração", há um menu com nomes de funções.
+      Escolha "autorizarPermissoes" e clique em "Executar".
+   2. Clique em "Revisar permissões" e escolha a sua conta.
+   3. Vai aparecer "O Google não verificou este app". Isso é normal para
+      programas próprios. Clique em "Avançado" > "Acessar Simulados (não seguro)".
+   4. Clique em "Permitir".
+   5. Embaixo deve aparecer: "Tudo autorizado".
+
+   Se aparecer "Ocorreu um erro desconhecido": abra uma janela anônima
+   (Ctrl+Shift+N), entre só com a sua conta e repita este passo.
+
+
+PASSO 6 - Publicar
+   1. Clique no botão azul "Implantar" > "Nova implantação".
+   2. Na engrenagem ao lado de "Selecionar tipo", escolha "App da Web".
+   3. Confira:  Executar como: Eu
+                Quem pode acessar: Qualquer pessoa
+   4. Clique em "Implantar" e copie o "URL do app da Web" (termina em /exec).
+
+
+PRONTO! O seu link de professor é esse URL com ?professor no final:
+   https://script.google.com/macros/s/..../exec?professor
+
+Salve nos favoritos. No primeiro acesso ele pede para você criar uma senha.
+
+
+SE UM DIA PRECISAR ATUALIZAR O SISTEMA
+   Cole os arquivos novos, salve e vá em:
+   Implantar > Gerenciar implantações > lápis (Editar) > Versão: "Nova versão" > Implantar.
+   Assim o link continua o mesmo. NÃO use "Nova implantação" (isso cria outro link).
+
+ESQUECEU A SENHA?
+   No editor, escolha a função "redefinirSenhaProfessor" no menu lá em cima e
+   clique em "Executar". No próximo acesso você cria outra senha.
+   Nenhuma prova ou nota é apagada.

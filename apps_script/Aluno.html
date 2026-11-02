@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    :root{font-family:Arial,sans-serif;color:#172033;background:#f3f5f9}*{box-sizing:border-box}
+    body{margin:0;padding:22px 12px}.wrap{max-width:900px;margin:auto}.top,.panel,.question{background:#fff;border:1px solid #e1e6ef;border-radius:16px;box-shadow:0 5px 20px #14213d0a}
+    .top{padding:22px;margin-bottom:14px}.top h1{margin:0 0 7px;font-size:23px}.muted{color:#64748b;font-size:14px}.panel{padding:18px;margin-bottom:14px}.fields{display:grid;grid-template-columns:2fr 1fr;gap:12px}label{font-weight:700;font-size:13px;display:block;margin-bottom:6px}input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px}
+    .progress{height:8px;background:#e8edf5;border-radius:20px;overflow:hidden;margin-top:12px}.bar{height:100%;background:#2563eb;width:0;transition:width .2s}.qhead{display:flex;justify-content:space-between;gap:12px;align-items:center}.tag{font-size:12px;color:#1d4ed8;background:#eff6ff;padding:6px 9px;border-radius:20px}.question{padding:18px}.question h2{margin:0;font-size:19px}.qimage{width:100%;height:auto;display:block;margin:16px auto;border:1px solid #e5e7eb;border-radius:8px;background:#fff}.choices{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.choice{border:1px solid #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-weight:700;cursor:pointer}.choice input{width:auto;margin-right:5px;accent-color:#2563eb}.choice:has(input:checked){background:#eff6ff;border-color:#2563eb;color:#1d4ed8}
+    .nav{display:flex;gap:10px;margin-top:14px}.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:700;cursor:pointer;font-size:14px}.primary{background:#2563eb;color:#fff}.secondary{background:#e8edf5;color:#1e293b}.btn:disabled{opacity:.45;cursor:not-allowed}.nav .primary{margin-left:auto}.status{margin-top:12px;font-size:14px;color:#b45309}.hidden{display:none!important}.done{text-align:center;padding:30px}.footer{font-size:12px;color:#64748b;text-align:center;margin:18px}.summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0}.summary-item{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;font-weight:700;color:#1e293b}.summary-item small{display:block;font-size:10px;font-weight:500;margin-top:3px;color:#64748b}.summary-item.answered{border-color:#86efac;background:#f0fdf4}.summary-item.missing{border-color:#fca5a5;background:#fef2f2;color:#b91c1c}.summary-item:hover{outline:2px solid #93c5fd}
+    .escolha{display:block;width:100%;text-align:left;margin-top:10px;padding:16px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font-size:16px;font-weight:700;cursor:pointer}.escolha:hover{border-color:#2563eb;background:#eff6ff}.escolha small{display:block;font-weight:400;color:#64748b;margin-top:4px}
+    @media(max-width:600px){.fields{grid-template-columns:1fr}.choices{grid-template-columns:repeat(5,1fr);gap:5px}.choice{padding:10px 3px;font-size:13px}.top h1{font-size:20px}.question{padding:12px}.summary-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.summary-item{padding:9px 2px;font-size:13px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="titulo">Simulado</h1>
+    <div class="muted" id="headerSubtitle"></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="muted" id="progressText" style="margin-top:7px">Carregando...</div>
+  </header>
+  <section class="panel hidden" id="escolher">
+    <h2 style="margin-top:0">Escolha o simulado</h2>
+    <div id="listaSimulados"></div>
+  </section>
+  <section class="panel hidden" id="recuperado" style="border-color:#86efac;background:#f0fdf4">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div id="recuperadoTexto" style="color:#14532d"></div>
+      <button class="btn secondary" id="naoSouEu">Não sou eu, começar do zero</button>
+    </div>
+  </section>
+  <section class="panel hidden" id="identification">
+    <div class="fields">
+      <div><label for="nome">Nome completo</label><input id="nome" autocomplete="name" placeholder="Digite seu nome"></div>
+      <div><label for="turma">Turma</label><input id="turma" placeholder="Ex.: 6º A"></div>
+    </div>
+  </section>
+  <main id="questionArea" class="question hidden">
+    <div class="qhead"><h2 id="qtitle">Questão 01</h2><span class="tag" id="subject"></span></div>
+    <div id="imageLoading" class="muted">Carregando imagem da questão...</div>
+    <img id="qimage" class="qimage hidden" alt="Enunciado e alternativas da questão">
+    <div style="font-weight:700;margin:16px 0 10px">Marque uma alternativa:</div>
+    <div class="choices" id="choices"></div>
+    <div class="nav"><button class="btn secondary" id="prev">← Anterior</button><button class="btn primary" id="next">Próxima →</button><button class="btn primary hidden" id="review">Revisar e enviar</button></div>
+    <div class="status" id="status"></div>
+  </main>
+  <section id="reviewArea" class="panel hidden">
+    <h2>Revisão das respostas</h2><p class="muted">Confira suas respostas. Questões em branco também podem ser enviadas e contarão como incorretas.</p>
+    <div id="reviewCounts" class="muted"></div><div id="answerSummary" class="summary-grid"></div>
+    <div class="nav"><button class="btn secondary" id="backToQuestions">← Voltar à prova</button><button class="btn primary" id="submit">Enviar respostas</button></div>
+    <div class="status" id="submitStatus"></div>
+  </section>
+  <section id="success" class="panel done hidden">
+    <div style="font-size:42px;color:#16a34a">✓</div>
+    <h2>Prova enviada!</h2>
+    <p id="successMessage">Seu envio foi registrado.</p>
+    <div id="studentResult" class="hidden" style="max-width:420px;margin:20px auto;padding:22px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:16px;color:#14532d">
+      <div style="font-size:13px;font-weight:700">SEU RESULTADO</div>
+      <div id="resultHits" style="font-size:38px;font-weight:800;margin:8px 0">0/0</div>
+      <div id="resultWrong" style="font-size:14px;margin-top:10px">0 questões incorretas</div>
+    </div>
+    <p class="muted">Guarde ou anote seu resultado.</p>
+    <button class="btn primary" id="restart">↻ Refazer simulado</button>
+  </section>
+  <div class="footer">Responda individualmente. O formulário registra uma única submissão ao final.</div>
+</div>
+<script>
+// O ID do simulado vem do link (?prova=...). O servidor o coloca aqui
+// (dentro de <script>, o Apps Script já escreve o valor como texto JavaScript, entre aspas).
+let provaId = <?= provaId ?>;
+let questions = [];   // [{number, subject}]
+let total = 0;
+let current = 0;
+let answers = {};
+const imagens = {};   // imagens já baixadas (número -> data URL), para não baixar de novo
+const $ = id => document.getElementById(id);
+
+function updateProgress() {
+  const done = Object.keys(answers).length;
+  const pct = total ? ((current + 1) / total * 100) : 0;
+  $('bar').style.width = pct + '%';
+  $('progressText').textContent = `Questão ${current + 1} de ${total} · ${done} respondidas`;
+  salvarRascunho();
+}
+
+// -------- Rascunho no navegador (localStorage) --------
+// Se a aba fechar, o celular descarregar ou a internet cair, as respostas não se
+// perdem: ficam guardadas neste navegador até o aluno enviar a prova.
+const DIAS_RASCUNHO = 14;
+const chaveRascunho = () => 'simulado_rascunho_' + provaId;
+function salvarRascunho() {
+  if (!provaId || !total) return;
+  try {
+    localStorage.setItem(chaveRascunho(), JSON.stringify({
+      nome: $('nome').value, turma: $('turma').value, answers: answers, current: current, salvoEm: Date.now()
+    }));
+  } catch (e) { /* navegador sem localStorage (ex.: modo restrito): segue sem rascunho */ }
+}
+function lerRascunho() {
+  try {
+    const r = JSON.parse(localStorage.getItem(chaveRascunho()) || 'null');
+    if (!r || Date.now() - r.salvoEm > DIAS_RASCUNHO * 864e5) return null;
+    return r;
+  } catch (e) { return null; }
+}
+function apagarRascunho() {
+  try { localStorage.removeItem(chaveRascunho()); } catch (e) {}
+}
+/** Ao abrir o simulado: devolve as respostas guardadas e avisa de quem são. */
+function recuperarRascunho() {
+  const r = lerRascunho();
+  if (!r) return;
+  const guardadas = {};
+  Object.keys(r.answers || {}).forEach(n => {
+    if (Number(n) >= 1 && Number(n) <= total && 'ABCDE'.indexOf(r.answers[n]) !== -1) guardadas[n] = r.answers[n];
+  });
+  const qtd = Object.keys(guardadas).length;
+  if (!qtd && !r.nome) return;
+  answers = guardadas;
+  current = Math.min(Math.max(0, Number(r.current) || 0), total - 1);
+  $('nome').value = r.nome || '';
+  $('turma').value = r.turma || '';
+  const quem = [r.nome, r.turma].filter(Boolean).join(', ');
+  $('recuperadoTexto').textContent = '↺ Continuando de onde parou: ' + qtd + ' de ' + total + ' questões respondidas' +
+    (quem ? ' (' + quem + ').' : '.');
+  $('recuperado').classList.remove('hidden');
+}
+$('naoSouEu').onclick = () => {
+  if (!confirm('Apagar as respostas guardadas neste aparelho e começar do zero?')) return;
+  apagarRascunho();
+  answers = {};
+  current = 0;
+  $('nome').value = '';
+  $('turma').value = '';
+  $('recuperado').classList.add('hidden');
+  showQuestion();
+  $('nome').focus();
+};
+$('nome').addEventListener('input', salvarRascunho);
+$('turma').addEventListener('input', salvarRascunho);
+
+// Baixa a imagem de uma questão (ou usa a que já foi baixada).
+// Se a turma toda abrir ao mesmo tempo, o Google pode recusar alguns pedidos;
+// por isso tenta de novo até 4 vezes, esperando um pouco mais a cada vez.
+const pedidos = {};
+function carregarImagem(n) {
+  if (imagens[n]) return Promise.resolve(imagens[n]);
+  if (pedidos[n]) return pedidos[n];
+  const tentar = vez => new Promise((ok, falha) => {
+    google.script.run
+      .withSuccessHandler(data => { imagens[n] = data; ok(data); })
+      .withFailureHandler(err => {
+        if (vez >= 4) return falha(err);
+        setTimeout(() => tentar(vez + 1).then(ok, falha), 1000 * vez + Math.random() * 1000);
+      })
+      .imagemQuestao(provaId, n);
+  });
+  pedidos[n] = tentar(1).finally(() => { delete pedidos[n]; });
+  return pedidos[n];
+}
+
+function showQuestion() {
+  const q = questions[current];
+  $('questionArea').classList.remove('hidden');
+  $('reviewArea').classList.add('hidden');
+  $('qtitle').textContent = 'Questão ' + String(q.number).padStart(2, '0');
+  $('subject').textContent = q.subject;
+  $('subject').classList.toggle('hidden', !q.subject);
+  $('qimage').classList.add('hidden');
+  $('imageLoading').classList.remove('hidden');
+  $('imageLoading').textContent = 'Carregando imagem da questão...';
+  $('choices').innerHTML = '';
+
+  $('choices').style.gridTemplateColumns = 'repeat(' + q.letters.length + ',1fr)';
+  q.letters.forEach(letter => {
+    const label = document.createElement('label');
+    label.className = 'choice';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'answer';
+    input.value = letter;
+    input.checked = answers[q.number] === letter;
+    input.addEventListener('change', () => {
+      answers[q.number] = letter;
+      updateProgress();
+    });
+    label.append(input, document.createTextNode(letter));
+    $('choices').append(label);
+  });
+
+  $('prev').disabled = current === 0;
+  const isLast = current === total - 1;
+  $('next').classList.toggle('hidden', isLast);
+  $('review').classList.toggle('hidden', !isLast);
+  $('status').textContent = '';
+  updateProgress();
+
+  carregarImagem(q.number).then(data => {
+    if (current === q.number - 1) {
+      $('qimage').src = data;
+      $('qimage').classList.remove('hidden');
+      $('imageLoading').classList.add('hidden');
+    }
+    // Já vai buscando a próxima, para o aluno não esperar.
+    if (q.number < total) carregarImagem(q.number + 1).catch(() => {});
+  }).catch(err => {
+    $('imageLoading').textContent = 'Erro ao carregar a imagem: ' + err.message;
+  });
+}
+
+function openReview() {
+  if (!$('nome').value.trim() || !$('turma').value.trim()) {
+    alert('Preencha nome completo e turma.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('nome').focus();
+    return;
+  }
+  const missing = [];
+  for (let i = 1; i <= total; i++) if (!answers[i]) missing.push(i);
+
+  $('answerSummary').innerHTML = '';
+  for (let i = 1; i <= total; i++) {
+    const answered = !!answers[i];
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'summary-item ' + (answered ? 'answered' : 'missing');
+    item.innerHTML = String(i).padStart(2, '0') +
+      '<small>' + (answered ? 'Resposta: ' + answers[i] : 'Não respondida') + '</small>';
+    item.title = 'Clique para ir à questão ' + String(i).padStart(2, '0');
+    item.addEventListener('click', () => { current = i - 1; showQuestion(); });
+    $('answerSummary').append(item);
+  }
+  $('reviewCounts').textContent =
+    (total - missing.length) + ' de ' + total + ' respondidas · ' + missing.length + ' pendentes. Clique em qualquer questão para alterá-la.';
+
+  if (missing.length) {
+    $('submitStatus').textContent =
+      missing.length + ' questão(ões) em branco. Você pode voltar para responder ou enviar assim mesmo; as questões em branco contarão como incorretas.';
+    $('submitStatus').style.color = '#b45309';
+  } else {
+    $('submitStatus').textContent = 'Todas as questões foram respondidas. Você já pode enviar.';
+    $('submitStatus').style.color = '#15803d';
+  }
+  $('questionArea').classList.add('hidden');
+  $('reviewArea').classList.remove('hidden');
+}
+
+$('prev').onclick = () => { if (current > 0) { current--; showQuestion(); } };
+$('next').onclick = () => { if (current < total - 1) { current++; showQuestion(); } };
+$('review').onclick = openReview;
+$('backToQuestions').onclick = () => { current = total - 1; showQuestion(); };
+
+$('submit').onclick = () => {
+  const payload = {
+    provaId: provaId,
+    nome: $('nome').value.trim(),
+    turma: $('turma').value.trim(),
+    respostas: answers
+  };
+  $('submit').disabled = true;
+  $('submitStatus').textContent = 'Enviando...';
+  google.script.run
+    .withSuccessHandler(result => {
+      apagarRascunho();   // enviado: não precisa mais guardar no aparelho
+      $('recuperado').classList.add('hidden');
+      $('reviewArea').classList.add('hidden');
+      $('success').classList.remove('hidden');
+      $('identification').classList.add('hidden');
+      $('successMessage').textContent = 'Seu envio foi registrado com sucesso.';
+      if (result.corrigido) {
+        $('studentResult').classList.remove('hidden');
+        $('resultHits').textContent = result.acertos + '/' + result.total;
+        $('resultWrong').textContent = result.erros + ' questão(ões) incorreta(s), incluindo as que ficaram em branco.';
+      } else {
+        $('studentResult').classList.add('hidden');
+        $('successMessage').textContent = 'Seu envio foi registrado. O professor vai divulgar o resultado.';
+      }
+    })
+    .withFailureHandler(err => {
+      $('submit').disabled = false;
+      $('submitStatus').textContent = 'Erro: ' + err.message;
+    })
+    .enviarRespostas(payload);
+};
+
+$('restart').onclick = () => {
+  if (!confirm('Deseja refazer o simulado? Todas as respostas atuais serão apagadas.')) return;
+  apagarRascunho();
+  answers = {};
+  current = 0;
+  $('nome').value = '';
+  $('turma').value = '';
+  $('submit').disabled = false;
+  $('success').classList.add('hidden');
+  $('identification').classList.remove('hidden');
+  $('questionArea').classList.remove('hidden');
+  $('reviewArea').classList.add('hidden');
+  updateProgress();
+  showQuestion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// -------- Carregamento inicial --------
+function erroInicial(msg) {
+  $('progressText').textContent = msg;
+  $('progressText').style.color = '#b91c1c';
+}
+
+function abrirSimulado(id) {
+  provaId = id;
+  $('escolher').classList.add('hidden');
+  google.script.run
+    .withSuccessHandler(dados => {
+      total = dados.total;
+      questions = [];
+      for (let i = 1; i <= total; i++) {
+        // 4 = A-D, 5 = A-E (simulados antigos não têm essa informação: A-E)
+        const alt = (dados.alternativas || [])[i - 1] === 4 ? 4 : 5;
+        questions.push({ number: i, subject: dados.materias[i - 1] || '', letters: 'ABCDE'.slice(0, alt).split('') });
+      }
+      $('titulo').textContent = dados.nome;
+      document.title = dados.nome;
+      const materias = Array.from(new Set(dados.materias.filter(Boolean)));
+      $('headerSubtitle').textContent = total + ' questões' + (materias.length ? ' · ' + materias.join(', ') : '');
+      $('identification').classList.remove('hidden');
+      recuperarRascunho();   // respostas guardadas neste aparelho, se houver
+      showQuestion();
+    })
+    .withFailureHandler(err => erroInicial(err.message))
+    .dadosSimulado(id);
+}
+
+if (provaId) {
+  abrirSimulado(provaId);
+} else {
+  // Link sem ?prova=: mostra os simulados abertos.
+  google.script.run
+    .withSuccessHandler(lista => {
+      if (!lista.length) return erroInicial('Nenhum simulado está aberto no momento.');
+      if (lista.length === 1) return abrirSimulado(lista[0].id);
+      $('progressText').textContent = '';
+      $('escolher').classList.remove('hidden');
+      lista.forEach(s => {
+        const b = document.createElement('button');
+        b.className = 'escolha';
+        b.textContent = s.nome;
+        const small = document.createElement('small');
+        small.textContent = s.total + ' questões';
+        b.append(small);
+        b.onclick = () => abrirSimulado(s.id);
+        $('listaSimulados').append(b);
+      });
+    })
+    .withFailureHandler(err => erroInicial(err.message))
+    .simuladosAbertos();
+}
+</script>
+</body>
+</html>

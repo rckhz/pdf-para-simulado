@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    :root{font-family:Arial,sans-serif;color:#172033;background:#f3f5f9}*{box-sizing:border-box}
+    body{margin:0;padding:18px 12px 90px}.wrap{max-width:920px;margin:auto}
+    h1{font-size:24px;margin:0}h2{font-size:19px;margin:0 0 10px}
+    .card{background:#fff;border:1px solid #e1e6ef;border-radius:16px;box-shadow:0 5px 20px #14213d0a;padding:20px;margin-bottom:14px}
+    .muted{color:#64748b;font-size:14px}.small{font-size:13px}.hidden{display:none!important}
+    .linha{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.logo{font-weight:800;font-size:18px;color:#1d4ed8}
+    .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;font-size:15px;text-decoration:none;display:inline-block;text-align:center}
+    .btn.grande{padding:16px 24px;font-size:17px}.primary{background:#2563eb;color:#fff}.primary:hover{background:#1d4ed8}.secondary{background:#e8edf5;color:#1e293b}.verde{background:#16a34a;color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}
+    .voltar{background:none;border:0;color:#1d4ed8;font-weight:700;font-size:15px;cursor:pointer;padding:6px 0;margin-bottom:8px}
+    input[type=password],input[type=text],input[type=email]{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0}
+    .centro{max-width:420px;margin:40px auto;text-align:center}.erro{color:#b91c1c;font-size:14px;margin-top:10px;min-height:18px}
+    .erro-box{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:12px;padding:16px;margin-top:14px;line-height:1.5}
+    .ok-box{background:#f0fdf4;border:1px solid #86efac;color:#14532d;border-radius:12px;padding:14px;margin-bottom:10px;line-height:1.5}
+    .alerta-box{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:12px;padding:14px;margin-bottom:10px;line-height:1.5}
+    .spinner{width:34px;height:34px;border:4px solid #dbe4f3;border-top-color:#2563eb;border-radius:50%;animation:gira 1s linear infinite;margin:30px auto 12px}@keyframes gira{to{transform:rotate(360deg)}}
+    .prova-item{display:block;width:100%;text-align:left;background:#fff;border:1px solid #e1e6ef;border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;font-size:15px}
+    .prova-item:hover{border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}.prova-item b{font-size:17px}
+    .chip{display:inline-block;font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;background:#e8edf5;color:#334155}
+    .chip.Publicado{background:#dcfce7;color:#166534}.chip.Rascunho{background:#fef3c7;color:#92400e}.chip.Encerrado{background:#e5e7eb;color:#374151}
+    .soltar{display:block;border:3px dashed #93c5fd;border-radius:16px;padding:44px 20px;text-align:center;cursor:pointer;background:#f8fbff;font-size:17px}
+    .soltar:hover,.soltar.arrastando{background:#eff6ff;border-color:#2563eb}.soltar .icone{font-size:46px}.soltar span{display:block;color:#64748b;font-size:14px;margin-top:6px}
+    .passos{padding-left:22px;line-height:2;font-size:16px}.passos li{color:#94a3b8}.passos li.ativo{color:#1d4ed8;font-weight:700}.passos li.feito{color:#16a34a}.passos li.feito::after{content:" ✓"}
+    .progress{height:12px;background:#e8edf5;border-radius:20px;overflow:hidden;margin:12px 0 8px}.bar{height:100%;background:#2563eb;width:0;transition:width .25s}
+    .abas{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.abas button{flex:1;min-width:150px;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;color:#334155}
+    .abas button.ativa{background:#2563eb;border-color:#2563eb;color:#fff}
+    .qgrade{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;align-items:start}
+    .qlinha{background:#fff;border:1px solid #e1e6ef;border-radius:12px;padding:10px 12px}.qlinha.marcada{border-color:#86efac;background:#f7fdf9}
+    .qlinha .qtopo{justify-content:flex-start}.qlinha.aberta{grid-column:1/-1}.qlinha .letras{margin-top:8px}.qlinha .letra{padding:9px 0;font-size:17px;border-radius:10px}
+    .ver{background:none;border:0;color:#64748b;font-size:12px;text-decoration:underline;cursor:pointer;margin-left:auto;padding:0}
+    .qtopo{display:flex;justify-content:space-between;align-items:center;gap:10px}.tag{font-size:12px;color:#1d4ed8;background:#eff6ff;padding:5px 9px;border-radius:20px}
+    .qimg{min-height:120px;margin:12px 0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:14px}.qimg img{width:100%;height:auto;border:1px solid #e5e7eb;border-radius:8px}
+    .qaviso{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
+    .letras{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.letra{border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:14px 0;font-size:20px;font-weight:800;cursor:pointer;color:#334155}
+    .letra:hover{border-color:#2563eb}.letra.escolhida{background:#16a34a;border-color:#16a34a;color:#fff}
+    .barra-fixa{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e1e6ef;box-shadow:0 -4px 16px #14213d14;padding:12px 16px;z-index:5}
+    .barra-fixa .dentro{max-width:920px;margin:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.barra-fixa .btn{margin-left:auto}
+    .link-box{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.link-box input{flex:1;min-width:220px;font-size:14px;background:#f8fafc}.link-box .btn{display:inline-flex;align-items:center;justify-content:center;margin:6px 0}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eef2f7}th{color:#64748b;font-size:12px;text-transform:uppercase}
+    .numeros{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}.numero{flex:1;min-width:130px;background:#f8fafc;border-radius:12px;padding:14px}.numero b{display:block;font-size:28px}
+    .perigo{text-align:center;margin:30px 0}.link-perigo{background:none;border:0;color:#b91c1c;cursor:pointer;font-size:14px;text-decoration:underline;margin:0 10px}
+    .link-neutro{background:none;border:0;color:#1d4ed8;cursor:pointer;font-size:14px;text-decoration:underline;margin:0 10px}
+    details summary{cursor:pointer;font-weight:700}
+    @media(max-width:600px){.letra{padding:12px 0;font-size:17px}.abas button{min-width:0;font-size:13px;padding:10px 4px}h1{font-size:20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topo"><div class="logo">📝 Simulados · Área do Professor</div><button class="link-neutro hidden" id="btnSair">Sair</button></div>
+
+  <!-- Carregando -->
+  <section id="tCarregando" class="tela"><div class="spinner"></div><p class="muted" style="text-align:center" id="carregandoTexto">Carregando...</p></section>
+
+  <!-- Senha -->
+  <section id="tSenha" class="tela hidden card centro">
+    <h1 id="senhaTitulo">Entrar</h1>
+    <p class="muted" id="senhaTexto">Digite a senha do professor.</p>
+    <input type="password" id="senha" placeholder="Senha" autocomplete="current-password">
+    <input type="password" id="senha2" class="hidden" placeholder="Repita a senha" autocomplete="new-password">
+    <button class="btn primary grande" style="width:100%;margin-top:8px" id="btnSenha">Entrar</button>
+    <div class="erro" id="senhaErro"></div>
+  </section>
+
+  <!-- Meus simulados -->
+  <section id="tPainel" class="tela hidden">
+    <div class="linha" style="margin-bottom:14px"><h1>Meus simulados</h1><button class="btn primary grande" id="btnNovo">+ Novo simulado</button></div>
+    <div id="listaProvas"></div>
+    <details class="card" style="margin-top:24px">
+      <summary>⚙ Configurações</summary>
+      <p class="muted">Receber um e-mail a cada prova enviada por um aluno (deixe em branco para não receber):</p>
+      <div class="link-box"><input type="email" id="email" placeholder="seuemail@exemplo.com"><button class="btn secondary" id="btnEmail">Salvar</button></div>
+      <div class="muted small" id="emailStatus"></div>
+      <p class="muted">Todas as respostas também ficam numa planilha do Google: <a id="linkPlanilha" target="_blank" href="#">abrir planilha</a>.</p>
+    </details>
+  </section>
+
+  <!-- Novo simulado -->
+  <section id="tNovo" class="tela hidden">
+    <button class="voltar" data-voltar>← Meus simulados</button>
+    <div class="card">
+      <h1 style="margin-bottom:6px">Novo simulado</h1>
+      <p class="muted" style="margin-top:0">Escolha o PDF da prova. O sistema recorta cada questão sozinho.</p>
+      <div id="novoEscolher">
+        <label class="soltar" id="areaSoltar">
+          <input type="file" id="arquivoPdf" accept="application/pdf,.pdf" hidden>
+          <div class="icone">📄</div><b>Clique aqui para escolher o PDF</b><span>ou arraste o arquivo para cá</span>
+        </label>
+      </div>
+      <div id="novoProgresso" class="hidden">
+        <ol class="passos"><li id="passo1">Preparando o leitor de provas</li><li id="passo2">Lendo e recortando as questões</li><li id="passo3">Guardando as imagens no Google Drive</li></ol>
+        <div class="progress"><div class="bar" id="novoBar"></div></div>
+        <div id="novoTexto" style="font-weight:700"></div>
+        <p class="muted small">Não feche esta página. Na primeira vez o passo 1 pode levar até 1 minuto.</p>
+      </div>
+      <div id="novoErro" class="erro-box hidden"></div>
+    </div>
+  </section>
+
+  <!-- Um simulado -->
+  <section id="tProva" class="tela hidden">
+    <button class="voltar" data-voltar>← Meus simulados</button>
+    <div class="card">
+      <div class="linha"><h1 id="provaNome"></h1><span class="chip" id="provaSituacao"></span></div>
+      <div class="muted" id="provaInfo" style="margin-top:6px"></div>
+      <nav class="abas">
+        <button data-aba="gabarito">1. Gabarito</button>
+        <button data-aba="publicar">2. Enviar aos alunos</button>
+        <button data-aba="resultados">3. Resultados</button>
+      </nav>
+    </div>
+    <div id="abaGabarito" class="aba">
+      <div id="gabInfo"></div>
+      <div id="listaQuestoes"></div>
+    </div>
+    <div id="abaPublicar" class="aba hidden card"></div>
+    <div id="abaResultados" class="aba hidden"></div>
+    <div class="perigo">
+      <button class="link-neutro" id="btnRenomear">Mudar o nome</button>
+      <button class="link-neutro" id="btnPasta">Ver imagens no Drive</button>
+      <button class="link-perigo" id="btnExcluir">Excluir este simulado</button>
+    </div>
+  </section>
+</div>
+
+<div class="barra-fixa hidden" id="barraGabarito">
+  <div class="dentro">
+    <b id="gabContador"></b><span class="muted" id="gabSalvo"></span>
+    <button class="btn primary" id="gabContinuar">Continuar →</button>
+  </div>
+</div>
+
+<!-- Código Python do extrator (gerado por src/escola/gerar_apps_script.py) -->
+<?!= include('Extrator') ?>
+
+<script>
+const $ = id => document.getElementById(id);
+const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.5/full/';
+let token = lerToken();
+let prova = null;           // simulado aberto na tela
+let gabarito = [];          // cópia editável do gabarito
+const imagens = {};         // "id:numero" -> data URL (para não baixar de novo)
+
+// ================= utilidades =================
+function lerToken() { try { return sessionStorage.getItem('tokenProfessor') || ''; } catch (e) { return ''; } }
+function guardarToken(t) { token = t; try { sessionStorage.setItem('tokenProfessor', t); } catch (e) {} }
+const pausa = () => new Promise(r => setTimeout(r, 0));
+const doisDigitos = n => String(n).padStart(2, '0');
+const dataBR = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('pt-BR'); };
+function texto(el, t) { el.textContent = t; return el; }
+function criar(tag, classe, conteudo) {
+  const el = document.createElement(tag);
+  if (classe) el.className = classe;
+  if (conteudo !== undefined) el.textContent = conteudo;
+  return el;
+}
+
+/** Chama uma função do Code.gs e devolve uma Promise. */
+function chamar(funcao, ...args) {
+  return new Promise((ok, falha) => {
+    const servidor = google.script.run
+      .withSuccessHandler(ok)
+      .withFailureHandler(err => {
+        if (String(err && err.message).indexOf('SESSAO_EXPIRADA') !== -1) {
+          guardarToken('');
+          mostrarSenha('Sua sessão expirou. Digite a senha de novo.');
+        }
+        falha(err);
+      });
+    // Se o Código.gs publicado for mais antigo que esta página, a função não existe lá.
+    if (typeof servidor[funcao] !== 'function') {
+      return falha(new Error('o servidor do app está desatualizado (falta a função "' + funcao + '"). ' +
+        'Quem instalou o sistema precisa atualizar o Código.gs e publicar uma nova versão.'));
+    }
+    servidor[funcao](...args);
+  });
+}
+/** Igual a chamar(), mas já manda o token do professor. */
+const api = (funcao, ...args) => chamar(funcao, token, ...args);
+
+function mostrarTela(nome) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.add('hidden'));
+  $('t' + nome).classList.remove('hidden');
+  $('barraGabarito').classList.add('hidden');
+  $('btnSair').classList.toggle('hidden', !token || nome === 'Senha');
+  window.scrollTo(0, 0);
+}
+function carregando(msg) { $('carregandoTexto').textContent = msg || 'Carregando...'; mostrarTela('Carregando'); }
+
+// ================= senha =================
+let modoSenha = 'entrar';
+function mostrarSenha(msg) {
+  mostrarTela('Senha');
+  $('senhaErro').textContent = msg || '';
+  chamar('professorTemSenha').then(tem => {
+    modoSenha = tem ? 'entrar' : 'criar';
+    $('senhaTitulo').textContent = tem ? 'Entrar' : 'Bem-vindo(a)!';
+    $('senhaTexto').textContent = tem ? 'Digite a senha do professor.'
+      : 'Primeiro acesso: crie uma senha para proteger a sua área. Guarde bem essa senha.';
+    $('senha2').classList.toggle('hidden', tem);
+    $('btnSenha').textContent = tem ? 'Entrar' : 'Criar senha e entrar';
+    $('senha').focus();
+  });
+}
+function enviarSenha() {
+  const s = $('senha').value;
+  if (modoSenha === 'criar' && s !== $('senha2').value) { $('senhaErro').textContent = 'As duas senhas não são iguais.'; return; }
+  $('btnSenha').disabled = true;
+  $('senhaErro').textContent = '';
+  chamar(modoSenha === 'criar' ? 'criarSenhaProfessor' : 'entrarProfessor', s)
+    .then(t => { guardarToken(t); $('senha').value = $('senha2').value = ''; abrirPainel(); })
+    .catch(err => { $('senhaErro').textContent = err.message; })
+    .finally(() => { $('btnSenha').disabled = false; });
+}
+$('btnSenha').onclick = enviarSenha;
+$('senha').onkeydown = $('senha2').onkeydown = e => { if (e.key === 'Enter') enviarSenha(); };
+$('btnSair').onclick = () => { guardarToken(''); mostrarSenha(); };
+
+// ================= meus simulados =================
+function abrirPainel() {
+  carregando('Carregando seus simulados...');
+  api('painelProfessor').then(dados => {
+    mostrarTela('Painel');
+    $('email').value = dados.email;
+    $('linkPlanilha').href = dados.planilhaUrl;
+    const lista = $('listaProvas');
+    lista.innerHTML = '';
+    if (!dados.provas.length) {
+      const vazio = criar('div', 'card');
+      vazio.innerHTML = '<h2>Você ainda não tem simulados</h2><p class="muted">Clique em <b>+ Novo simulado</b> e escolha o PDF da prova. O sistema faz o resto.</p>';
+      lista.append(vazio);
+    }
+    dados.provas.forEach(p => {
+      const b = criar('button', 'prova-item');
+      const linha = criar('div', 'linha');
+      linha.append(criar('b', '', p.nome), criar('span', 'chip ' + p.situacao, p.situacao));
+      const info = criar('div', 'muted', p.total + ' questões · criado em ' + dataBR(p.criadoEm) +
+        ' · ' + p.envios + (p.envios === 1 ? ' aluno respondeu' : ' alunos responderam'));
+      b.append(linha, info);
+      if (p.faltamGabarito > 0) b.append(criar('div', 'small', '⚠ Faltam ' + p.faltamGabarito + ' respostas no gabarito'));
+      b.onclick = () => abrirProva(p.id);
+      lista.append(b);
+    });
+  }).catch(err => { if (token) { mostrarTela('Painel'); alert('Erro: ' + err.message); } });
+}
+$('btnEmail').onclick = () => {
+  $('emailStatus').textContent = 'Salvando...';
+  api('configurarEmail', $('email').value)
+    .then(e => { $('emailStatus').textContent = e ? 'Pronto! Os avisos irão para ' + e : 'Avisos por e-mail desligados.'; })
+    .catch(err => { $('emailStatus').textContent = err.message; });
+};
+document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => { salvarGabaritoAgora(); abrirPainel(); });
+
+// ================= novo simulado =================
+$('btnNovo').onclick = () => {
+  mostrarTela('Novo');
+  $('novoEscolher').classList.remove('hidden');
+  $('novoProgresso').classList.add('hidden');
+  $('novoErro').classList.add('hidden');
+  $('arquivoPdf').value = '';
+  carregarPyodide().catch(() => {});   // já começa a preparar o leitor enquanto o professor procura o arquivo
+};
+$('arquivoPdf').onchange = e => { if (e.target.files[0]) processarPdf(e.target.files[0]); };
+const area = $('areaSoltar');
+area.ondragover = e => { e.preventDefault(); area.classList.add('arrastando'); };
+area.ondragleave = () => area.classList.remove('arrastando');
+area.ondrop = e => {
+  e.preventDefault();
+  area.classList.remove('arrastando');
+  if (e.dataTransfer.files[0]) processarPdf(e.dataTransfer.files[0]);
+};
+
+function passo(n) {
+  for (let i = 1; i <= 3; i++) $('passo' + i).className = i < n ? 'feito' : (i === n ? 'ativo' : '');
+}
+function progresso(feitas, total, msg) {
+  $('novoBar').style.width = (total ? Math.round(feitas / total * 100) : 0) + '%';
+  $('novoTexto').textContent = msg;
+}
+function erroNovo(html) {
+  $('novoProgresso').classList.add('hidden');
+  $('novoEscolher').classList.remove('hidden');
+  $('arquivoPdf').value = '';
+  $('novoErro').innerHTML = html;
+  $('novoErro').classList.remove('hidden');
+}
+
+async function processarPdf(arquivo) {
+  if (!/\.pdf$/i.test(arquivo.name) && arquivo.type !== 'application/pdf') {
+    return erroNovo('<b>Este arquivo não é um PDF.</b><br>Escolha o arquivo da prova em PDF.');
+  }
+  $('novoErro').classList.add('hidden');
+  $('novoEscolher').classList.add('hidden');
+  $('novoProgresso').classList.remove('hidden');
+
+  // 1) Leitor de provas (Python rodando no navegador)
+  passo(1);
+  progresso(0, 1, 'Preparando o leitor de provas...');
+  let py;
+  try {
+    py = await carregarPyodide();
+  } catch (err) {
+    return erroNovo('<b>Não foi possível preparar o leitor de provas.</b><br>Verifique a internet e tente de novo.' +
+      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
+  }
+
+  // 2) Recorte das questões
+  passo(2);
+  let r;
+  try {
+    r = await recortar(py, arquivo);
+  } catch (err) {
+    return erroNovo('<b>Não consegui ler este PDF.</b><br>Confira se é o arquivo certo da prova.' +
+      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
+  }
+  if (!r.ok) {
+    return erroNovo('<b>Não encontrei questões neste PDF.</b><br>O sistema reconhece provas no modelo com o ' +
+      'número de cada questão num quadradinho azul (01, 02, 03...). Provas escaneadas (fotos) ou de outro ' +
+      'modelo não podem ser lidas automaticamente.');
+  }
+
+  // 3) Envio para o Google Drive
+  passo(3);
+  const total = r.questoes.length;
+  const avisos = {};
+  r.questoes.forEach(q => { if (q.avisos.length) avisos[q.numero] = q.avisos; });
+  const gerais = r.avisos_gerais.filter(a => a.indexOf('REVISAR') !== -1);
+  if (gerais.length) avisos.geral = gerais;
+
+  let provaId = null;
+  try {
+    progresso(0, total, 'Criando o simulado...');
+    // Nome = título da prova + dia ("… · 2ª série · 1º dia"), se o título ainda não tiver o dia.
+    const titulo = r.titulo || arquivo.name.replace(/\.pdf$/i, '');
+    const nome = r.dia && titulo.toLowerCase().indexOf(r.dia.toLowerCase()) === -1 ? titulo + ' · ' + r.dia : titulo;
+    provaId = await api('criarProva', {
+      nome: nome,
+      total: total,
+      materias: r.questoes.map(q => q.assunto),
+      alternativas: r.questoes.map(q => q.num_alternativas),
+      gabarito: r.gabarito || [],
+      relatorio: r.relatorio,
+      avisos: avisos
+    });
+    const ids = new Array(total);
+    let feitas = 0;
+    await emParalelo(r.questoes, 4, async q => {
+      ids[q.numero - 1] = await tentarDeNovo(() => api('salvarImagem', provaId, q.numero, q.jpg), 3);
+      imagens[provaId + ':' + q.numero] = 'data:image/jpeg;base64,' + q.jpg;
+      feitas++;
+      progresso(feitas, total, 'Guardando a imagem ' + feitas + ' de ' + total + '...');
+    });
+    await api('concluirImagens', provaId, ids);
+  } catch (err) {
+    if (provaId) api('excluirProva', provaId).catch(() => {});   // não deixa um simulado pela metade
+    return erroNovo('<b>Houve um problema ao guardar as imagens no Google Drive.</b><br>Tente de novo.' +
+      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
+  }
+
+  abrirProva(provaId, { novo: true, gabaritoDoPdf: !!r.gabarito, aba: 'gabarito' });
+}
+
+/** Roda o extrator Python, atualizando a barra a cada questão recortada. */
+async function recortar(py, arquivo) {
+  const bytes = new Uint8Array(await arquivo.arrayBuffer());
+  py.globals.set('pdf_entrada', bytes);
+  py.globals.set('nome_pdf', arquivo.name);
+  const etapas = py.runPython('etapas_js(pdf_entrada.to_py(), nome_pdf)');
+  let resultado = null;
+  try {
+    for (let p = etapas.next(); !p.done; p = etapas.next()) {
+      const e = JSON.parse(p.value);
+      if (e[0] === 'fim') resultado = e[1];
+      else progresso(e[1], e[2], e[3]);
+      await pausa();   // deixa o navegador desenhar a barra de progresso
+    }
+  } finally {
+    etapas.destroy();
+    py.globals.delete('pdf_entrada');
+  }
+  return resultado;
+}
+
+/** Executa tarefas com no máximo "limite" ao mesmo tempo. */
+async function emParalelo(itens, limite, tarefa) {
+  let proximo = 0;
+  const trabalhadores = Array.from({ length: Math.min(limite, itens.length) }, async () => {
+    while (proximo < itens.length) await tarefa(itens[proximo++]);
+  });
+  await Promise.all(trabalhadores);
+}
+async function tentarDeNovo(fn, vezes) {
+  for (let i = 1; ; i++) {
+    try { return await fn(); } catch (err) {
+      if (i >= vezes || String(err.message).indexOf('SESSAO_EXPIRADA') !== -1) throw err;
+      await new Promise(r => setTimeout(r, 1500 * i));
+    }
+  }
+}
+function escapar(s) { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
+
+// ---- Pyodide: Python dentro do navegador (carregado uma vez só) ----
+let pyodidePronto = null;
+function carregarScript(src) {
+  return new Promise((ok, falha) => {
+    if (window.loadPyodide) return ok();
+    const s = document.createElement('script');
+    s.src = src; s.onload = ok; s.onerror = () => falha(new Error('não consegui baixar ' + src));
+    document.head.append(s);
+  });
+}
+function carregarPyodide() {
+  if (!pyodidePronto) {
+    pyodidePronto = (async () => {
+      await carregarScript(PYODIDE_URL + 'pyodide.js');
+      const py = await loadPyodide({ indexURL: PYODIDE_URL });
+      await py.loadPackage('pymupdf');
+      const fonte = new TextDecoder().decode(Uint8Array.from(atob(EXTRATOR_PY_B64), c => c.charCodeAt(0)));
+      py.FS.writeFile('/home/pyodide/extrair_questoes.py', fonte);
+      py.runPython([
+        'import sys, json, base64',
+        'sys.path.insert(0, "/home/pyodide")',
+        'import extrair_questoes as E',
+        'def etapas_js(pdf, nome):',
+        '    for etapa in E.extrair_em_etapas(pdf, nome):',
+        '        if etapa[0] == "fim":',
+        '            r = etapa[1]',
+        '            for q in r.get("questoes", []):',
+        '                q["jpg"] = base64.b64encode(q["jpg"]).decode("ascii")',
+        '            yield json.dumps(["fim", r])',
+        '        else:',
+        '            yield json.dumps(list(etapa))',
+      ].join('\n'));
+      return py;
+    })();
+    pyodidePronto.catch(() => { pyodidePronto = null; });   // se falhar, tenta de novo na próxima vez
+  }
+  return pyodidePronto;
+}
+
+// ================= um simulado =================
+function abrirProva(id, opcoes) {
+  opcoes = opcoes || {};
+  carregando('Abrindo o simulado...');
+  api('abrirProva', id).then(p => {
+    prova = p;
+    prova.novo = !!opcoes.novo;
+    prova.gabaritoDoPdf = !!opcoes.gabaritoDoPdf;
+    gabarito = p.gabarito.slice();
+    while (gabarito.length < p.total) gabarito.push('');
+    mostrarTela('Prova');
+    desenharCabecalho();
+    const faltam = gabarito.filter(l => !l).length;
+    abrirAba(opcoes.aba || (p.situacao === 'Rascunho' ? (faltam ? 'gabarito' : 'publicar') : (p.envios ? 'resultados' : 'publicar')));
+  }).catch(err => { if (token) { alert('Erro: ' + err.message); abrirPainel(); } });
+}
+function desenharCabecalho() {
+  $('provaNome').textContent = prova.nome;
+  $('provaSituacao').textContent = prova.situacao;
+  $('provaSituacao').className = 'chip ' + prova.situacao;
+  $('provaInfo').textContent = prova.total + ' questões · criado em ' + dataBR(prova.criadoEm);
+}
+document.querySelectorAll('.abas button').forEach(b => b.onclick = () => abrirAba(b.dataset.aba));
+function abrirAba(nome) {
+  salvarGabaritoAgora();
+  document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativa', b.dataset.aba === nome));
+  ['gabarito', 'publicar', 'resultados'].forEach(a =>
+    $('aba' + a[0].toUpperCase() + a.slice(1)).classList.toggle('hidden', a !== nome));
+  $('barraGabarito').classList.toggle('hidden', nome !== 'gabarito');
+  if (nome === 'gabarito') desenharGabarito();
+  if (nome === 'publicar') desenharPublicar();
+  if (nome === 'resultados') desenharResultados();
+}
+
+// ---------- aba 1: gabarito ----------
+function desenharGabarito() {
+  const info = $('gabInfo');
+  info.innerHTML = '';
+  if (prova.novo) {
+    info.append(criar('div', 'ok-box', '✅ Pronto! As ' + prova.total + ' questões foram recortadas e guardadas. ' +
+      'Agora marque a resposta certa de cada questão (ou envie o arquivo do gabarito logo abaixo).'));
+  }
+  if (prova.gabaritoDoPdf) info.append(criar('div', 'ok-box', 'O gabarito estava no PDF e já veio marcado. É só conferir.'));
+  if (!prova.imagensOk) info.append(criar('div', 'alerta-box', '⚠ As imagens deste simulado não foram guardadas por completo. Exclua-o e envie o PDF de novo.'));
+  (prova.avisos.geral || []).forEach(a => info.append(criar('div', 'alerta-box', '⚠ Confira: ' + a.replace(' REVISAR.', ''))));
+  info.append(cartaoGabaritoArquivo());
+
+  // Uma linha compacta por questão: número, matéria e A B C D E (sem o enunciado).
+  // A imagem só aparece se o professor clicar em "ver questão".
+  const lista = $('listaQuestoes');
+  lista.innerHTML = '';
+  lista.className = 'qgrade';
+  for (let n = 1; n <= prova.total; n++) {
+    const linha = criar('div', 'qlinha');
+    linha.id = 'qc' + n;
+    const topo = criar('div', 'qtopo');
+    topo.append(criar('b', '', 'Questão ' + doisDigitos(n)));
+    if (prova.materias[n - 1]) topo.append(criar('span', 'tag', prova.materias[n - 1]));
+    const ver = criar('button', 'ver', 'ver questão');
+    topo.append(ver);
+    linha.append(topo);
+    (prova.avisos[n] || []).forEach(a => linha.append(criar('div', 'qaviso', '⚠ Confira esta questão: ' + a)));
+    // só as letras que a questão tem: A-D ou A-E (contadas pelo extrator)
+    const qtd = (prova.alternativas || [])[n - 1] === 4 ? 4 : 5;
+    const letras = criar('div', 'letras');
+    letras.style.gridTemplateColumns = 'repeat(' + qtd + ',1fr)';
+    LETRAS.slice(0, qtd).forEach(l => {
+      const b = criar('button', 'letra', l);
+      b.onclick = () => marcar(n, l);
+      letras.append(b);
+    });
+    linha.append(letras);
+    const img = criar('div', 'qimg hidden', 'Carregando imagem...');
+    img.dataset.n = n;
+    linha.append(img);
+    ver.onclick = () => {
+      const abrir = img.classList.contains('hidden');
+      img.classList.toggle('hidden', !abrir);
+      linha.classList.toggle('aberta', abrir);
+      ver.textContent = abrir ? 'esconder' : 'ver questão';
+      if (abrir && !img.querySelector('img')) mostrarImagem(img);
+    };
+    lista.append(linha);
+    pintarQuestao(n);
+  }
+  atualizarContador();
+}
+// ---------- gabarito a partir de um arquivo (foto, PDF ou texto) ----------
+function cartaoGabaritoArquivo() {
+  const card = criar('div', 'card');
+  card.append(criar('b', '', '📎 Já tem o gabarito pronto?'));
+  card.append(criar('p', 'muted', 'Envie uma foto, um PDF, uma planilha (Excel) ou um arquivo de texto com as respostas. ' +
+    'O sistema marca as letras sozinho e você só confere.'));
+  const rotulo = criar('label', 'btn secondary', 'Enviar arquivo do gabarito');
+  const input = criar('input');
+  input.type = 'file';
+  input.accept = 'image/*,.pdf,application/pdf,.xlsx,.xls,.xlsm,.ods,.txt,.csv,text/plain';
+  input.hidden = true;
+  rotulo.append(input);
+  const status = criar('div');
+  status.style.marginTop = '12px';
+  input.onchange = () => { if (input.files[0]) lerArquivoGabarito(input.files[0], status, rotulo); input.value = ''; };
+  card.append(rotulo, status);
+  return card;
+}
+
+async function lerArquivoGabarito(arquivo, status, rotulo) {
+  status.innerHTML = '';
+  status.append(criar('div', 'muted', '⏳ Lendo o gabarito... (fotos, PDFs e planilhas levam alguns segundos)'));
+  rotulo.classList.add('hidden');
+  try {
+    let lido;
+    if (/\.(heic|heif)$/i.test(arquivo.name) || /heic|heif/i.test(arquivo.type)) {
+      throw new Error('fotos do iPhone no formato HEIC não podem ser lidas. Tire um print da foto ' +
+        '(ou, no iPhone, em Ajustes > Câmera > Formatos, escolha "Mais compatível") e envie de novo.');
+    }
+    if (/\.(txt|csv)$/i.test(arquivo.name) || /^text\//.test(arquivo.type)) {
+      lido = await lerTextoLocal(arquivo);
+    } else {
+      const preparado = await prepararParaEnvio(arquivo);
+      lido = await api('lerTextoDeArquivo', arquivo.name, preparado.tipo, preparado.base64);
+    }
+    aplicarGabaritoLido(interpretarGabarito(lido, prova.total), lido, status);
+  } catch (err) {
+    status.innerHTML = '';
+    status.append(criar('div', 'erro-box', 'Não consegui ler esse arquivo: ' + err.message));
+  } finally {
+    rotulo.classList.remove('hidden');
+  }
+}
+
+function aplicarGabaritoLido(r, lido, status) {
+  status.innerHTML = '';
+  if (!r.conjuntos.length) {
+    const caixa = criar('div', 'erro-box', 'Não encontrei respostas nesse arquivo. Se for foto, confira se está ' +
+      'nítida e mostra os números das questões e as letras. Você também pode marcar as letras abaixo.');
+    status.append(caixa, detalhesLidos(lido, null));
+    return;
+  }
+  if (r.conjuntos.length === 1) return usarConjunto(r.conjuntos[0], lido, status);
+
+  // A folha tem vários gabaritos (ex.: 1ª e 2ª série, 1º e 2º dia): o professor escolhe.
+  const s = sugerirConjunto(r.conjuntos, prova.total, prova.materias, prova.nome);
+  const caixa = criar('div', 'alerta-box');
+  caixa.append(criar('b', '', 'Este arquivo tem ' + r.conjuntos.length + ' gabaritos diferentes. Qual é o desta prova?'));
+  caixa.append(criar('div', 'small', s.recomendado !== -1
+    ? 'O botão verde é o que mais combina com esta prova (número de questões, matérias e série). Confira antes de clicar.'
+    : 'Esta prova tem ' + prova.total + ' questões. Escolha o gabarito certo pelo nome.'));
+  s.ordem.forEach(i => {
+    const c = r.conjuntos[i];
+    const sugerido = i === s.recomendado;
+    const b = criar('button', 'btn ' + (sugerido ? 'verde' : 'secondary'),
+      c.rotulo + ' — ' + c.quantidade + ' respostas' + (sugerido ? '  ✓ sugerido' : ''));
+    b.style.display = 'block';
+    b.style.width = '100%';
+    b.style.marginTop = '8px';
+    b.style.textAlign = 'left';
+    b.onclick = () => usarConjunto(c, lido, status);
+    caixa.append(b);
+  });
+  status.append(caixa, detalhesLidos(lido, null));
+}
+
+function usarConjunto(c, lido, status) {
+  const qtdAlt = n => ((prova.alternativas || [])[n - 1] === 4 ? 4 : 5);
+  // letra que não existe na questão (ex.: "E" numa questão A-D): não marca e avisa
+  const impossiveis = Object.keys(c.respostas).map(Number)
+    .filter(n => n >= 1 && n <= prova.total && LETRAS.indexOf(c.respostas[n]) >= qtdAlt(n));
+  const numeros = Object.keys(c.respostas).map(Number)
+    .filter(n => n >= 1 && n <= prova.total && impossiveis.indexOf(n) === -1);
+  const trocas = numeros.filter(n => gabarito[n - 1] && gabarito[n - 1] !== c.respostas[n]).length;
+  if (trocas && !confirm('O arquivo tem ' + trocas + ' resposta(s) diferente(s) das que você já marcou. ' +
+                         'Usar as respostas do arquivo?')) return;
+  numeros.forEach(n => { gabarito[n - 1] = c.respostas[n]; pintarQuestao(n); });
+  atualizarContador();
+  agendarSalvar();
+
+  status.innerHTML = '';
+  status.append(criar('div', 'ok-box', '✅ ' + (c.rotulo !== 'Gabarito' ? 'Usei o gabarito "' + c.rotulo + '". ' : '') +
+    'Marquei ' + numeros.length + ' de ' + prova.total + ' respostas. Confira as letras nas questões abaixo.'));
+  if (c.quantidade > prova.total) {
+    status.append(criar('div', 'alerta-box', 'Atenção: este gabarito tem ' + c.quantidade + ' respostas, mas a prova tem ' +
+      prova.total + ' questões. Confira se é o gabarito certo.'));
+  }
+  if (impossiveis.length) {
+    status.append(criar('div', 'alerta-box', 'O arquivo tem "E" em questões que só vão até D: ' +
+      impossiveis.map(doisDigitos).join(', ') + '. Não marquei essas. Confira se é o gabarito desta prova.'));
+  }
+  const faltando = [];
+  for (let n = 1; n <= prova.total; n++) if (!c.respostas[n] || impossiveis.indexOf(n) !== -1) faltando.push(n);
+  if (faltando.length) {
+    status.append(criar('div', 'alerta-box', 'Não encontrei a resposta destas questões: ' +
+      faltando.map(doisDigitos).join(', ') + '. Marque essas à mão.'));
+  }
+  status.append(detalhesLidos(lido, c));
+}
+
+/** "Ver o que foi lido": transparência para o professor conferir. */
+function detalhesLidos(lido, c) {
+  const d = criar('details');
+  d.append(criar('summary', 'small', 'Ver o que foi lido do arquivo'));
+  if (c) {
+    const pares = Object.keys(c.respostas).map(n => doisDigitos(n) + '-' + c.respostas[n]).join('  ');
+    d.append(criar('p', 'small', pares));
+  }
+  const pre = criar('pre', 'small', String(lido || '').slice(0, 3000));
+  pre.style.whiteSpace = 'pre-wrap';
+  pre.style.background = '#f8fafc';
+  pre.style.padding = '10px';
+  pre.style.borderRadius = '8px';
+  d.append(pre);
+  return d;
+}
+
+function lerTextoLocal(arquivo) {
+  return arquivo.arrayBuffer().then(buf => {
+    const utf8 = new TextDecoder('utf-8').decode(buf);
+    // Arquivos salvos no Bloco de Notas antigo podem estar em "ANSI" (windows-1252).
+    return utf8.indexOf('\uFFFD') === -1 ? utf8 : new TextDecoder('windows-1252').decode(buf);
+  });
+}
+
+/** Fotos grandes de celular são reduzidas (até 2200 px) para enviar mais rápido. */
+async function prepararParaEnvio(arquivo) {
+  if (/^image\/(jpeg|png|webp|gif|bmp)$/.test(arquivo.type)) {
+    try {
+      const img = await createImageBitmap(arquivo);
+      const escala = Math.min(1, 2200 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      return { tipo: 'image/jpeg', base64: canvas.toDataURL('image/jpeg', 0.92).split(',')[1] };
+    } catch (e) { /* se não der para reduzir, envia o original */ }
+  }
+  const base64 = await new Promise((ok, falha) => {
+    const leitor = new FileReader();
+    leitor.onload = () => ok(String(leitor.result).split(',')[1]);
+    leitor.onerror = () => falha(new Error('não consegui abrir o arquivo'));
+    leitor.readAsDataURL(arquivo);
+  });
+  return { tipo: arquivo.type || 'application/octet-stream', base64: base64 };
+}
+
+/**
+ * Transforma o texto de um gabarito em respostas.
+ * Uma folha pode ter VÁRIOS gabaritos (ex.: 1ª e 2ª série, 1º e 2º dia).
+ * Por isso devolvemos uma lista de "conjuntos", cada um com o seu rótulo:
+ *   { conjuntos: [ { rotulo, respostas: {numero: letra}, quantidade, texto } ] }
+ * Um conjunto novo começa quando a numeração recomeça (aparece de novo uma
+ * questão que já tinha resposta) ou depois de um cabeçalho de série/ano/dia.
+ * Entende "01 - A", "1) b", "1.C", tabelas e uma sequência só de letras.
+ * Nunca inventa: o que não estiver claro simplesmente não entra.
+ */
+function interpretarGabarito(texto, total) {
+  let t = String(texto || '');
+  t = t
+    // letra minúscula colada ao número ("1-a", "02) b") vira maiúscula
+    .replace(/(\d{1,3}\s*[-–—.:)=]\s*)\(?([a-e])\)?(?![a-zà-ÿ])/g, (m, antes, l) => antes + l.toUpperCase())
+    // números que NÃO são respostas: "questões 01 a 18", "48 QUESTÕES", "página 1/16"
+    .replace(/quest(?:ões|oes|ão|ao)\s*(?:de\s*)?\d{1,3}\s*(?:a|e|até|ate|-|–)\s*\d{1,3}/gi, ' ')
+    .replace(/\d{1,3}\s*quest(?:ões|oes|ão|ao)/gi, ' ')
+    .replace(/\d+\s*\/\s*\d+/g, ' ')
+    // "Bloco 1", "Parte 2", "Caderno 3", "Prova 1"... também não são questões
+    .replace(/(simulado|bloco|parte|caderno|prova|p[áa]gina|folha|volume|unidade|etapa|turma|sala|vers[ãa]o|tipo)\s*\d{1,3}/gi, '$1');
+
+  const conjuntos = [];
+  let atual = null, pendentes = [], serie = '', dia = '', quebra = false, fimUltimaLetra = 0;
+  const novoConjunto = () => {
+    atual = { serie: serie, dia: dia, respostas: {}, inicio: fimUltimaLetra };
+    conjuntos.push(atual);
+    pendentes = [];
+    quebra = false;
+  };
+  const re = new RegExp([
+    '(\\d)\\s*[ªa°º]?\\s*[Ss][ÉéEe][Rr][Ii][Ee]',              // 1: "2ª série"
+    '(\\d{1,2})\\s*[ºo°]\\s*[Aa][Nn][Oo](?![a-zà-ÿ])',          // 2: "6º ano"
+    '(\\d)\\s*[ºo°]\\s*[Dd][Ii][Aa](?![a-zà-ÿ])',               // 3: "1º dia"
+    '(?<![\\d,.])(\\d{1,3})(?![\\d,.]?\\d|[º°ªa-zA-Zà-ÿ%])',     // 4: número de questão
+    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])'            // 5: letra A-E sozinha
+  ].join('|'), 'g');
+  const soltas = [];
+  // Títulos na ordem em que aparecem. O OCR do Google às vezes lê TODOS os títulos
+  // primeiro e só depois as tabelas; por isso guardamos a lista para usar no final.
+  const secoesDia = [], secoesSerie = [];
+  let m;
+  while ((m = re.exec(t))) {
+    if (m[1] || m[2] || m[3]) pendentes = [];   // um título nunca é seguido de uma letra que seja dele
+    if (m[1] || m[2]) {
+      serie = m[1] ? m[1] + 'ª série' : m[2] + 'º ano'; dia = ''; quebra = true;
+      const ant = secoesSerie[secoesSerie.length - 1];
+      // "1ª e 2ª série do Ensino Médio" seguido de "1ª série": o primeiro não é seção de verdade
+      if (ant && t.slice(ant.fim, m.index).trim().length < 40) secoesSerie.pop();
+      secoesSerie.push({ rotulo: serie, inicio: m.index, fim: re.lastIndex });
+    }
+    else if (m[3]) {
+      dia = m[3] + 'º dia'; quebra = true;
+      secoesDia.push({ rotulo: [serie, dia].filter(Boolean).join(' · '), inicio: m.index });
+    }
+    else if (m[4]) {
+      const n = Number(m[4]);
+      if (n < 1 || n > 200) continue;
+      if (!atual || (quebra && Object.keys(atual.respostas).length) || atual.respostas[n]) novoConjunto();
+      const ja = pendentes.indexOf(n);
+      if (ja !== -1) pendentes.splice(ja, 1);   // número repetido antes da letra: vale o último
+      pendentes.push(n);
+    } else if (pendentes.length) {
+      atual.respostas[pendentes.shift()] = m[5];   // a letra vai para o número mais antigo que espera (tabelas)
+      fimUltimaLetra = re.lastIndex;
+    } else {
+      soltas.push(m[5]);
+    }
+  }
+
+  // Descarta pedacinhos (ruído) e dá nome a cada conjunto.
+  let validos = conjuntos.filter(c => Object.keys(c.respostas).length >= Math.min(3, Math.ceil(total / 2)));
+  validos.forEach((c, i) => {
+    const prox = conjuntos[conjuntos.indexOf(c) + 1];
+    c.texto = t.slice(c.inicio, prox ? prox.inicio : t.length);
+    c.quantidade = Object.keys(c.respostas).length;
+    c.rotulo = [c.serie, c.dia].filter(Boolean).join(' · ') || (validos.length > 1 ? 'Gabarito ' + (i + 1) : 'Gabarito');
+  });
+  // Se há um título para cada gabarito, o nome vem da ORDEM dos títulos (funciona mesmo
+  // quando o OCR leu todos os títulos antes das tabelas). O texto de cada título (com as
+  // matérias) também é usado para sugerir o gabarito certo.
+  // Usa a lista de títulos (por dia ou por série/ano) que tem um título para cada gabarito.
+  // Ex.: "SARESP · 2º dia" com 6º, 7º e 8º ano -> só 1 título de dia, mas 3 de ano: usa os anos.
+  const secoes = [secoesDia, secoesSerie].find(s => s.length === validos.length) || [];
+  if (validos.length > 1 && secoes.length === validos.length) {
+    validos.forEach((c, k) => {
+      c.rotulo = secoes[k].rotulo;
+      c.texto = t.slice(secoes[k].inicio, secoes[k + 1] ? secoes[k + 1].inicio : t.length);
+    });
+  }
+  // Nomes repetidos (não deu para saber qual é qual): numera pela posição na folha.
+  validos.forEach((c, k) => {
+    if (validos.filter(x => x.rotulo === c.rotulo).length > 1) c.rotulo = (k + 1) + 'º da folha · ' + c.rotulo;
+  });
+  // Sem números: talvez seja só a sequência de letras ("A B D C..." ou "ABDC...").
+  if (!validos.length) {
+    const letras = (t.match(/(?<![A-Za-zÀ-ÿ])[A-E]+(?![A-Za-zÀ-ÿ])/g) || []).join('').split('');
+    const seq = letras.length === total ? letras : (soltas.length === total ? soltas : null);
+    if (seq) {
+      const respostas = {};
+      seq.forEach((l, i) => { respostas[i + 1] = l; });
+      validos = [{ rotulo: 'Gabarito', respostas: respostas, quantidade: total, texto: t }];
+    }
+  }
+  return { conjuntos: validos.map(c => ({ rotulo: c.rotulo, respostas: c.respostas, quantidade: c.quantidade, texto: c.texto })) };
+}
+
+/**
+ * Dá uma nota a cada conjunto para sugerir o desta prova: mesma quantidade
+ * de questões, mesmas matérias e mesma série/ano do nome da prova.
+ */
+function sugerirConjunto(conjuntos, total, materias, nomeProva) {
+  const simples = s => String(s || '').toLowerCase().replace(/ª/g, 'a').replace(/[º°]/g, 'o')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  const nome = simples(nomeProva);
+  const unicas = Array.from(new Set((materias || []).filter(Boolean)));
+  const notas = conjuntos.map(c => {
+    let p = c.quantidade === total ? 10 : -10 * Math.abs(c.quantidade - total) / total;
+    const tx = simples(c.texto);
+    unicas.forEach(mat => { if (tx.indexOf(simples(mat)) !== -1) p += 2; });
+    const partes = c.rotulo.split(' · ');
+    if (partes[0] && /serie|ano/.test(simples(partes[0])) && nome.indexOf(simples(partes[0])) !== -1) p += 3;
+    if (partes[1] && nome.indexOf(simples(partes[1])) !== -1) p += 3;
+    return p;
+  });
+  const ordem = conjuntos.map((c, i) => i).sort((a, b) => notas[b] - notas[a]);
+  // Só recomenda se o primeiro for claramente melhor que o segundo.
+  const recomendado = ordem.length === 1 || notas[ordem[0]] > notas[ordem[1]] ? ordem[0] : -1;
+  return { ordem: ordem, recomendado: recomendado };
+}
+
+function mostrarImagem(caixa) {
+  const n = Number(caixa.dataset.n), chave = prova.id + ':' + n;
+  const por = src => { caixa.innerHTML = ''; const i = new Image(); i.src = src; i.alt = 'Questão ' + n; caixa.append(i); };
+  if (imagens[chave]) return por(imagens[chave]);
+  filaImagens(() => api('imagemProfessor', prova.id, n).then(src => { imagens[chave] = src; por(src); })
+    .catch(err => { caixa.textContent = 'Não foi possível carregar a imagem (' + err.message + ').'; }));
+}
+// no máximo 3 imagens baixando ao mesmo tempo
+let baixando = 0; const espera = [];
+function filaImagens(tarefa) {
+  if (baixando >= 3) return espera.push(tarefa);
+  baixando++;
+  tarefa().finally(() => { baixando--; if (espera.length) filaImagens(espera.shift()); });
+}
+function pintarQuestao(n) {
+  const card = $('qc' + n);
+  card.classList.toggle('marcada', !!gabarito[n - 1]);
+  card.querySelectorAll('.letra').forEach(b => b.classList.toggle('escolhida', b.textContent === gabarito[n - 1]));
+}
+function marcar(n, letra) {
+  const eraVazia = !gabarito[n - 1];
+  gabarito[n - 1] = letra;
+  pintarQuestao(n);
+  atualizarContador();
+  agendarSalvar();
+  // Pula para a próxima questão sem resposta (agiliza marcar o gabarito todo).
+  if (eraVazia) {
+    const prox = gabarito.findIndex((l, i) => i >= n && !l);
+    if (prox !== -1) $('qc' + (prox + 1)).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+function atualizarContador() {
+  const faltam = gabarito.filter(l => !l).length;
+  $('gabContador').textContent = faltam ? 'Faltam ' + faltam + ' de ' + prova.total : '✅ Gabarito completo';
+  $('gabContinuar').classList.toggle('verde', !faltam);
+  $('gabContinuar').classList.toggle('primary', !!faltam);
+}
+let timerSalvar = null, salvando = Promise.resolve();
+function agendarSalvar() {
+  $('gabSalvo').textContent = 'Salvando...';
+  clearTimeout(timerSalvar);
+  timerSalvar = setTimeout(salvarGabaritoAgora, 800);
+}
+function salvarGabaritoAgora() {
+  if (!timerSalvar || !prova) return salvando;
+  clearTimeout(timerSalvar);
+  timerSalvar = null;
+  const id = prova.id, copia = gabarito.slice();
+  salvando = salvando.then(() => api('salvarGabarito', id, copia)).then(r => {
+    if (prova && prova.id === id) prova.gabarito = copia;
+    $('gabSalvo').textContent = 'Salvo ✓' + (r.corrigidos ? ' · notas de ' + r.corrigidos + ' envio(s) atualizadas' : '');
+  }).catch(err => { $('gabSalvo').textContent = 'Erro ao salvar: ' + err.message; });
+  return salvando;
+}
+$('gabContinuar').onclick = () => abrirAba('publicar');
+window.addEventListener('beforeunload', e => { if (timerSalvar) { salvarGabaritoAgora(); e.preventDefault(); } });
+
+// ---------- aba 2: enviar aos alunos ----------
+function desenharPublicar() {
+  const caixa = $('abaPublicar');
+  caixa.innerHTML = '';
+  const faltam = gabarito.filter(l => !l).length;
+
+  if (prova.situacao === 'Rascunho') {
+    caixa.append(criar('h2', '', 'Liberar o simulado para os alunos'));
+    if (faltam) {
+      caixa.append(criar('div', 'alerta-box', 'Ainda faltam ' + faltam + ' respostas no gabarito. Você pode liberar ' +
+        'mesmo assim: as notas serão calculadas sozinhas quando o gabarito estiver completo.'));
+    } else {
+      caixa.append(criar('div', 'ok-box', 'O gabarito está completo. Os alunos verão a nota assim que enviarem.'));
+    }
+    const b = criar('button', 'btn verde grande', '🚀 Liberar para os alunos');
+    b.onclick = () => mudar('Publicado', b);
+    caixa.append(b);
+    return;
+  }
+  if (prova.situacao === 'Publicado') {
+    caixa.append(criar('h2', '', '✅ O simulado está aberto para os alunos'));
+    caixa.append(criar('p', 'muted', 'Mande este link para os alunos (WhatsApp, Google Sala de Aula, e-mail...):'));
+    const box = criar('div', 'link-box');
+    const input = criar('input');
+    input.type = 'text'; input.readOnly = true; input.value = prova.link;
+    input.onclick = () => input.select();
+    const copiar = criar('button', 'btn primary', '📋 Copiar link');
+    copiar.onclick = () => copiarTexto(input, copiar);
+    const zap = criar('a', 'btn verde', 'Enviar pelo WhatsApp');
+    zap.href = 'https://wa.me/?text=' + encodeURIComponent(prova.nome + ' — responda aqui: ' + prova.link);
+    zap.target = '_blank';
+    box.append(input, copiar, zap);
+    caixa.append(box);
+    const ver = criar('a', 'link-neutro', 'Abrir como aluno (para testar)');
+    ver.href = prova.link; ver.target = '_blank'; ver.style.marginLeft = '0';
+    caixa.append(ver);
+    if (faltam) caixa.append(criar('div', 'alerta-box', 'Lembrete: faltam ' + faltam + ' respostas no gabarito (aba 1). ' +
+      'Enquanto isso, os alunos não veem a nota.'));
+    const fechar = criar('button', 'btn secondary', '🔒 Encerrar (os alunos não poderão mais responder)');
+    fechar.style.marginTop = '24px';
+    fechar.onclick = () => { if (confirm('Encerrar o simulado? Os alunos não poderão mais enviar respostas. Você pode reabrir depois.')) mudar('Encerrado', fechar); };
+    caixa.append(criar('br'), fechar);
+    return;
+  }
+  caixa.append(criar('h2', '', '🔒 Simulado encerrado'));
+  caixa.append(criar('p', 'muted', 'Os alunos não conseguem mais responder. As notas continuam na aba Resultados.'));
+  const abrir = criar('button', 'btn primary', 'Reabrir para os alunos');
+  abrir.onclick = () => mudar('Publicado', abrir);
+  caixa.append(abrir);
+}
+function mudar(situacao, botao) {
+  botao.disabled = true;
+  salvarGabaritoAgora().then(() => api('mudarSituacao', prova.id, situacao)).then(s => {
+    prova.situacao = s;
+    desenharCabecalho();
+    desenharPublicar();
+  }).catch(err => { botao.disabled = false; alert('Erro: ' + err.message); });
+}
+function copiarTexto(input, botao) {
+  const pronto = () => { const t = botao.textContent; botao.textContent = '✓ Copiado!'; setTimeout(() => botao.textContent = t, 2000); };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(input.value).then(pronto).catch(() => { input.select(); document.execCommand('copy'); pronto(); });
+  } else { input.select(); document.execCommand('copy'); pronto(); }
+}
+
+// ---------- aba 3: resultados ----------
+function desenharResultados() {
+  const caixa = $('abaResultados');
+  caixa.innerHTML = '<div class="card"><div class="spinner"></div></div>';
+  salvarGabaritoAgora().then(() => api('resultados', prova.id)).then(r => {
+    caixa.innerHTML = '';
+    const topo = criar('div', 'card');
+    const linha = criar('div', 'linha');
+    linha.append(criar('h2', '', 'Resultados'));
+    const atualizar = criar('button', 'btn secondary', '↻ Atualizar');
+    atualizar.onclick = desenharResultados;
+    linha.append(atualizar);
+    topo.append(linha);
+    caixa.append(topo);
+
+    if (!r.alunos.length) {
+      topo.append(criar('p', 'muted', 'Ainda ninguém respondeu. Assim que os alunos enviarem, as notas aparecem aqui.'));
+      return;
+    }
+    if (!r.gabaritoCompleto) topo.append(criar('div', 'alerta-box', 'As notas aparecem quando o gabarito estiver completo (aba 1).'));
+
+    const corrigidos = r.alunos.filter(a => a.nota !== '' && a.nota !== null);
+    const media = corrigidos.length ? corrigidos.reduce((t, a) => t + Number(a.nota), 0) / corrigidos.length : null;
+    const nums = criar('div', 'numeros');
+    const caixaNum = (rotulo, valor) => { const d = criar('div', 'numero'); d.append(criar('b', '', valor), criar('span', 'muted', rotulo)); return d; };
+    nums.append(caixaNum(r.alunos.length === 1 ? 'aluno respondeu' : 'alunos responderam', String(r.alunos.length)));
+    if (media !== null) nums.append(caixaNum('nota média (0 a 10)', media.toFixed(1).replace('.', ',')));
+    topo.append(nums);
+
+    // Questões que a turma mais errou
+    if (r.gabaritoCompleto && r.questoes.length) {
+      const dificeis = r.questoes.slice().sort((a, b) => a.percentual - b.percentual).slice(0, 5);
+      const card = criar('div', 'card');
+      card.append(criar('h2', '', 'Questões que a turma mais errou'));
+      const t = criar('table');
+      t.innerHTML = '<tr><th>Questão</th><th>Acertaram</th><th>Resposta certa</th><th>Mais marcada</th></tr>';
+      dificeis.forEach(q => {
+        const tr = criar('tr');
+        const mais = Object.keys(q.marcadas).sort((a, b) => q.marcadas[b] - q.marcadas[a])[0];
+        [doisDigitos(q.numero), q.percentual + '%', q.correta, mais].forEach(v => tr.append(criar('td', '', v)));
+        t.append(tr);
+      });
+      card.append(t);
+      caixa.append(card);
+    }
+
+    const card = criar('div', 'card');
+    card.append(criar('h2', '', 'Notas dos alunos'));
+    const t = criar('table');
+    t.innerHTML = '<tr><th>Nome</th><th>Turma</th><th>Acertos</th><th>Nota</th><th>Enviado em</th></tr>';
+    r.alunos.slice().sort((a, b) => (a.turma + a.nome).localeCompare(b.turma + b.nome, 'pt-BR')).forEach(a => {
+      const tr = criar('tr');
+      const nota = a.nota === '' || a.nota === null ? '—' : String(a.nota).replace('.', ',');
+      [a.nome, a.turma, a.acertos === '' ? '—' : a.acertos + '/' + prova.total, nota, dataBR(a.data)]
+        .forEach(v => tr.append(criar('td', '', v)));
+      t.append(tr);
+    });
+    card.append(t);
+    const planilha = criar('a', 'btn secondary', 'Abrir na planilha do Google');
+    planilha.href = r.planilhaUrl; planilha.target = '_blank'; planilha.style.marginTop = '14px';
+    card.append(planilha);
+    caixa.append(card);
+  }).catch(err => { caixa.innerHTML = ''; caixa.append(criar('div', 'erro-box', 'Erro: ' + err.message)); });
+}
+
+// ---------- ações do simulado ----------
+$('btnRenomear').onclick = () => {
+  const novo = prompt('Novo nome do simulado:', prova.nome);
+  if (!novo || novo.trim() === prova.nome) return;
+  api('renomearProva', prova.id, novo).then(n => { prova.nome = n; desenharCabecalho(); }).catch(err => alert(err.message));
+};
+$('btnPasta').onclick = () => window.open(prova.pastaUrl, '_blank');
+$('btnExcluir').onclick = () => {
+  const aviso = prova.envios ? '\n\nATENÇÃO: ' + prova.envios + ' aluno(s) já responderam. As respostas também serão apagadas.' : '';
+  if (!confirm('Excluir "' + prova.nome + '"? As imagens vão para a lixeira do Google Drive.' + aviso)) return;
+  carregando('Excluindo...');
+  clearTimeout(timerSalvar); timerSalvar = null;   // não salva gabarito de um simulado que vai sumir
+  api('excluirProva', prova.id).then(abrirPainel).catch(err => { alert(err.message); abrirPainel(); });
+};
+
+// ================= início =================
+if (token) abrirPainel(); else mostrarSenha();
+</script>
+</body>
+</html>

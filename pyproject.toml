@@ -1,0 +1,16 @@
+[project]
+name = "escola"
+version = "0.1.0"
+description = "Extrai as questões de provas em PDF e gera um simulado online (Google Apps Script)"
+readme = "README.md"
+authors = [
+    { name = "rckhz", email = "alejandrolima123@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pymupdf>=2.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

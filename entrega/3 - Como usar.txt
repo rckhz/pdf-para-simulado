@@ -1,0 +1,74 @@
+COMO USAR NO DIA A DIA
+======================
+
+Abra o seu link de professor (o que termina em ?professor) e digite a senha.
+
+
+1) CRIAR UM SIMULADO
+   - Clique em "+ Novo simulado".
+   - Escolha o PDF da prova (ou arraste o arquivo para a área indicada).
+   - Espere a barra terminar. Na primeira vez pode levar até 1 minuto.
+     Não feche a página enquanto isso.
+
+   Funciona com provas no modelo em que cada questão tem o número num
+   quadradinho azul (01, 02, 03...). Provas escaneadas (foto) não funcionam.
+
+
+2) MARCAR O GABARITO  (aba "1. Gabarito")
+   Jeito rápido: clique em "Enviar arquivo do gabarito" e escolha a foto, o PDF,
+   a planilha (Excel) ou um arquivo de texto com as respostas.
+   As letras são marcadas sozinhas.
+     - Se a folha tiver vários gabaritos (6º, 7º, 8º ano, 1ª série, 2º dia...),
+       o sistema pergunta qual é o desta prova e sugere o certo em verde.
+     - Questões que ele não conseguir ler aparecem num aviso amarelo:
+       marque essas à mão.
+
+   Jeito manual: em cada questão, clique na letra certa (A, B, C, D ou E).
+
+   Cada questão aparece só com o número e as letras (sem o enunciado).
+   Se quiser conferir uma questão, clique em "ver questão" ao lado dela.
+   O gabarito é salvo sozinho.
+
+
+3) MANDAR PARA OS ALUNOS  (aba "2. Enviar aos alunos")
+   - Clique em "Liberar para os alunos".
+   - Clique em "Copiar link" ou "Enviar pelo WhatsApp".
+   - Dá para liberar antes de terminar o gabarito: as notas são calculadas
+     sozinhas quando ele ficar completo.
+   - Quando quiser parar de receber respostas, clique em "Encerrar".
+     Dá para reabrir depois.
+
+
+4) VER AS NOTAS  (aba "3. Resultados")
+   - Quantos alunos responderam e a nota média.
+   - As questões que a turma mais errou (e a alternativa mais marcada).
+   - A nota de cada aluno.
+   - Botão "Abrir na planilha do Google" com todas as respostas
+     (verde = acertou, vermelho = errou, cinza = em branco).
+
+
+O QUE O ALUNO VÊ
+   - Digita o nome e a turma, responde questão por questão e envia.
+   - Vê a nota assim que envia (se o gabarito já estiver completo).
+   - Se a página fechar ou a internet cair, ao abrir o link de novo ele
+     continua de onde parou.
+   - Em computador compartilhado da escola, o próximo aluno deve clicar em
+     "Não sou eu, começar do zero" se aparecer a prova de outra pessoa.
+
+
+OUTRAS OPÇÕES (no fim da página de cada simulado)
+   - "Mudar o nome" do simulado.
+   - "Ver imagens no Drive".
+   - "Excluir este simulado" (apaga as imagens e as respostas dos alunos).
+
+   Na tela "Meus simulados", em "Configurações", você pode receber um
+   e-mail a cada prova enviada por um aluno.
+
+
+CUIDADO - NÃO APAGUE NO GOOGLE DRIVE
+   - a planilha "Simulados - Resultados" (nem a aba "Provas" dentro dela);
+   - a pasta "Simulados - Imagens das Questões".
+   Elas são criadas sozinhas e guardam todos os simulados e notas.
+   Pode abrir e olhar à vontade, mas não apague, não renomeie as abas e
+   não mude as colunas. Para apagar um simulado, use "Excluir este simulado"
+   dentro da Área do Professor.
