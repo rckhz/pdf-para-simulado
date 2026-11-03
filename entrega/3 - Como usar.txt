@@ -10,8 +10,14 @@ Abra o seu link de professor (o que termina em ?professor) e digite a senha.
    - Espere a barra terminar. Na primeira vez pode levar até 1 minuto.
      Não feche a página enquanto isso.
 
-   Funciona com provas no modelo em que cada questão tem o número num
-   quadradinho azul (01, 02, 03...). Provas escaneadas (foto) não funcionam.
+   Funciona com provas em que cada questão começa com o número num
+   quadradinho (01, 02, 03...), como SARESP e Provão Paulista, ou com a
+   palavra "Questão 01", como o Vestibulinho Etec e o Vestibular Fatec,
+   ou com o número em negrito no começo ("6. Considere..."), e também
+   com o caderno do ENEM (90 questões) e com a Prova Paraná Mais.
+   No ENEM, as questões 01 a 05 de língua estrangeira entram só na
+   versão de INGLÊS.
+   Provas escaneadas (foto) não funcionam.
 
 
 2) MARCAR O GABARITO  (aba "1. Gabarito")
@@ -49,7 +55,15 @@ Abra o seu link de professor (o que termina em ?professor) e digite a senha.
 
 O QUE O ALUNO VÊ
    - Digita o nome e a turma, responde questão por questão e envia.
+   - Antes de enviar, vê a lista de todas as questões (as em branco em
+     vermelho). Ao clicar numa questão para responder, aparece o botão
+     "Voltar à revisão", que leva de volta direto para essa lista.
    - Vê a nota assim que envia (se o gabarito já estiver completo).
+   - Vê também quais questões acertou e errou, qual era a resposta certa,
+     e pode clicar numa questão para vê-la de novo.
+     Para esconder a resposta certa (ex.: simulado valendo nota, com outras
+     turmas ainda por fazer), desmarque "Mostrar a resposta certa ao aluno"
+     em "Meus simulados" > "Configurações".
    - Se a página fechar ou a internet cair, ao abrir o link de novo ele
      continua de onde parou.
    - Em computador compartilhado da escola, o próximo aluno deve clicar em

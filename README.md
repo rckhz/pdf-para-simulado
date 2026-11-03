@@ -7,12 +7,32 @@ conhecimento técnico**:
    apoio, figuras e alternativas) numa imagem;
 2. marca o gabarito, clicando nas letras ou enviando uma foto, PDF, planilha (Excel) ou texto;
 3. libera o simulado e manda o link aos alunos (botão de WhatsApp);
-4. os alunos respondem pelo celular ou computador e veem a nota na hora;
+4. os alunos respondem pelo celular ou computador e veem a nota na hora, com a lista do que
+   acertaram e erraram e a resposta certa (o professor pode esconder a resposta certa);
 5. o professor vê a média, as notas e as questões que a turma mais errou.
 
 Tudo roda no **Google Apps Script** (gratuito, na conta Google do professor): as imagens ficam no
 Google Drive e as respostas numa planilha do Google. O recorte do PDF é feito **no navegador do
 professor**, com Python rodando via [Pyodide](https://pyodide.org) + [PyMuPDF](https://pymupdf.readthedocs.io).
+
+## Provas compatíveis
+
+Testado com estas provas (PDF original, com texto, não escaneado):
+
+| Prova | Testada com | Questões | Observações |
+|---|---|---|---|
+| **ENEM** | 2025, 1º dia | 90 | Redação no meio do caderno é pulada; questões 01–05 só na versão de inglês |
+| **Vestibular Fatec** | 2020, 2024, 2025 e 2026 | 54–64 | Modelos "Questão 01" e "6. Considere..." (1 ou 2 colunas) |
+| **Vestibulinho Etec** | 1º sem. 2025 e 2026 | 50 | |
+| **Provão Paulista** | 2 cadernos | 42–48 | Selos numerados em 2 colunas |
+| **SARESP** | simulados | — | Selos numerados em 2 colunas |
+| **Prova Paraná Mais** | 2025, 3ª série EM, caderno 1 | 77 | Gabarito com Caderno 1 e 2 na mesma folha |
+
+Gabaritos: o sistema lê foto, PDF, planilha (Excel) ou texto, inclusive folhas com vários
+gabaritos (por ano, série, dia ou caderno) e tabelas com código do item ("001 PS25-LP-024 B").
+
+Outras provas com um desses formatos também devem funcionar (veja "Modelos de prova
+reconhecidos" abaixo). **Não funcionam:** PDFs escaneados (foto da prova, sem texto).
 
 ## Estrutura
 
@@ -55,8 +75,26 @@ navegador do professor (via Pyodide). Para mudar o extrator, edite o `.py` e rod
   convertidas pelo Drive. Folhas com vários gabaritos (6º/7º/8º ano, 1º/2º dia) viram uma
   pergunta ao professor, com sugestão do gabarito certo.
 
-Funciona com provas no modelo em que cada questão tem o número num selo (01, 02, 03...).
-PDFs escaneados não são suportados.
+Modelos de prova reconhecidos:
+- **com selo numerado** (01, 02, 03...) em **duas colunas**: SARESP, Provão Paulista;
+- **com a linha "Questão 01"** (ou "Questão" + número numa caixinha): Vestibulinho Etec e
+  Vestibular Fatec. Em geral é uma coluna, mas páginas com questões **lado a lado** também são
+  entendidas, em uma ou duas colunas (ex.: Provão Paulista 2023 com "QUESTÃO 01");
+- **com o número em negrito no começo da questão** ("6. Considere..."), em uma ou duas
+  colunas: Vestibular Fatec 2025. O texto logo abaixo do título da matéria ("LÍNGUA
+  PORTUGUESA") vira texto de apoio das questões daquela matéria;
+- **ENEM** ("QUESTÃO 01" em uma ou duas colunas): "Texto para as Questões de 06 a 10" vira texto
+  de apoio; a redação no meio do caderno é pulada e as questões continuam depois dela. As
+  questões 01 a 05 aparecem duas vezes (inglês e espanhol): fica só a primeira versão (inglês).
+- **Prova Paraná Mais** ("001) (PS25-LP-024) ..."): "Leia o texto abaixo." vale para todas as
+  questões seguintes até o próximo texto; a caixa "ATENÇÃO! Agora, você vai responder a questões
+  de Matemática." dá a matéria. O gabarito em tabela (nº, código do item, letra) é lido com os
+  cadernos separados ("Caderno 1", "Caderno 2").
+
+A capa, a contracapa, o cabeçalho e o rodapé repetidos, as marcas de impressão na borda, a coluna de rascunho, a folha de respostas e a
+redação do fim são ignorados.
+
+PDFs escaneados (foto, sem texto) não são suportados.
 
 ## Uso pelo terminal (opcional)
 

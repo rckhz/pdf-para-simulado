@@ -76,6 +76,13 @@
       <p class="muted">Receber um e-mail a cada prova enviada por um aluno (deixe em branco para não receber):</p>
       <div class="link-box"><input type="email" id="email" placeholder="seuemail@exemplo.com"><button class="btn secondary" id="btnEmail">Salvar</button></div>
       <div class="muted small" id="emailStatus"></div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 0 4px;cursor:pointer">
+        <input type="checkbox" id="mostrarCerta" style="width:20px;height:20px;margin-top:2px">
+        <span><b>Mostrar a resposta certa ao aluno</b> depois que ele envia a prova.<br>
+        <span class="muted small">Desligue em simulados valendo nota, para o gabarito não circular entre as turmas.
+        O aluno continua vendo o que acertou e errou.</span></span>
+      </label>
+      <div class="muted small" id="mostrarCertaStatus"></div>
       <p class="muted">Todas as respostas também ficam numa planilha do Google: <a id="linkPlanilha" target="_blank" href="#">abrir planilha</a>.</p>
     </details>
   </section>
@@ -228,6 +235,7 @@ function abrirPainel() {
   api('painelProfessor').then(dados => {
     mostrarTela('Painel');
     $('email').value = dados.email;
+    $('mostrarCerta').checked = dados.mostrarCerta !== false;
     $('linkPlanilha').href = dados.planilhaUrl;
     const lista = $('listaProvas');
     lista.innerHTML = '';
@@ -249,6 +257,13 @@ function abrirPainel() {
     });
   }).catch(err => { if (token) { mostrarTela('Painel'); alert('Erro: ' + err.message); } });
 }
+$('mostrarCerta').onchange = () => {
+  const ligado = $('mostrarCerta').checked;
+  $('mostrarCertaStatus').textContent = 'Salvando...';
+  api('configurarMostrarCerta', ligado)
+    .then(() => { $('mostrarCertaStatus').textContent = ligado ? 'Os alunos verão a resposta certa.' : 'Os alunos verão só se acertaram ou erraram.'; })
+    .catch(err => { $('mostrarCerta').checked = !ligado; $('mostrarCertaStatus').textContent = err.message; });
+};
 $('btnEmail').onclick = () => {
   $('emailStatus').textContent = 'Salvando...';
   api('configurarEmail', $('email').value)
@@ -704,11 +719,29 @@ function interpretarGabarito(texto, total) {
     // letra minúscula colada ao número ("1-a", "02) b") vira maiúscula
     .replace(/(\d{1,3}\s*[-–—.:)=]\s*)\(?([a-e])\)?(?![a-zà-ÿ])/g, (m, antes, l) => antes + l.toUpperCase())
     // números que NÃO são respostas: "questões 01 a 18", "48 QUESTÕES", "página 1/16"
-    .replace(/quest(?:ões|oes|ão|ao)\s*(?:de\s*)?\d{1,3}\s*(?:a|e|até|ate|-|–)\s*\d{1,3}/gi, ' ')
-    .replace(/\d{1,3}\s*quest(?:ões|oes|ão|ao)/gi, ' ')
+    // (na mesma linha e com "a"/"e" minúsculos: "QUESTÕES↵01 A 02" é gabarito, não intervalo)
+    .replace(/[Qq][Uu][Ee][Ss][Tt](?:[ÕõOo][Ee][Ss]|[ÃãAa][Oo])[ \t]*(?:de[ \t]*)?\d{1,3}[ \t]*(?:a|e|até|ate|-|–)[ \t]*\d{1,3}/g, ' ')
+    // datas ("28/06/2026", "30.11.2025") e frações/páginas ("1/16")
+    .replace(/\b\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}\b/g, ' ')
     .replace(/\d+\s*\/\s*\d+/g, ' ')
-    // "Bloco 1", "Parte 2", "Caderno 3", "Prova 1"... também não são questões
-    .replace(/(simulado|bloco|parte|caderno|prova|p[áa]gina|folha|volume|unidade|etapa|turma|sala|vers[ãa]o|tipo)\s*\d{1,3}/gi, '$1');
+    // datas por extenso ("APLICAÇÃO 03 DE DEZEMBRO")
+    .replace(/\b\d{1,2}\s+de\s+(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)/gi, ' ')
+    // código do item ("PS25-LP-024", "PS25-EDFIS-004"; o leitor de PDF às vezes quebra em
+    // "PS25↵-MAT-002E", com a resposta colada no fim): o número do código não é questão
+    .replace(/\b[A-Za-z]{1,6}\d{0,4}\s*(?:-[A-Za-z]{2,6})+-\d{2,4}/g, ' ')
+    .replace(/(^|\s)(?:-[A-Za-z]{2,6})+-\d{2,4}/g, '$1 ')
+    // semestre/ano colado a uma palavra ("1º SEM/20", "SEM/2024"): o número não é questão
+    .replace(/[A-Za-zÀ-ÿºª°]+\s*\/\s*\d{1,4}(?!\d)/g, ' ')
+    // "48 QUESTÕES" (na mesma linha; um número de outra linha não conta)
+    .replace(/(?<![\d\/])\d{1,3}[ \t]*quest(?:ões|oes|ão|ao)/gi, ' ')
+    // "Bloco 1", "Parte 2", "Prova 1"... também não são questões ("Caderno 1" é título: veja abaixo)
+    .replace(/(simulado|bloco|parte|prova|p[áa]gina|folha|volume|unidade|etapa|turma|sala|vers[ãa]o|tipo)\s*\d{1,3}/gi, '$1')
+    // "Q01", "Q.1", "Questão01" = número da questão (vira só " 01")
+    .replace(/(?<![A-Za-zÀ-ÿ])(?:q|quest(?:ão|ao))\.?\s*(\d{1,3})(?![\d])/gi, ' $1')
+    // códigos de letra+número colados ("C1", "C5" = critério de desempate; "1SEM26"; "H12" = habilidade)
+    // não são respostas nem números de questão
+    .replace(/(?<![A-Za-zÀ-ÿ\d])[A-Za-z]{1,4}\d+(?![A-Za-zÀ-ÿ\d])/g, ' ')
+    .replace(/(?<![A-Za-zÀ-ÿ\d])\d+[A-Za-z]{2,}\d*(?![A-Za-zÀ-ÿ\d])/g, ' ');
 
   const conjuntos = [];
   let atual = null, pendentes = [], serie = '', dia = '', quebra = false, fimUltimaLetra = 0;
@@ -722,8 +755,9 @@ function interpretarGabarito(texto, total) {
     '(\\d)\\s*[ªa°º]?\\s*[Ss][ÉéEe][Rr][Ii][Ee]',              // 1: "2ª série"
     '(\\d{1,2})\\s*[ºo°]\\s*[Aa][Nn][Oo](?![a-zà-ÿ])',          // 2: "6º ano"
     '(\\d)\\s*[ºo°]\\s*[Dd][Ii][Aa](?![a-zà-ÿ])',               // 3: "1º dia"
-    '(?<![\\d,.])(\\d{1,3})(?![\\d,.]?\\d|[º°ªa-zA-Zà-ÿ%])',     // 4: número de questão
-    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])'            // 5: letra A-E sozinha
+    '[Cc][Aa][Dd][Ee][Rr][Nn][Oo]\\s*(\\d{1,2})(?!\\d)',          // 4: "Caderno 2"
+    '(?<![\\d,.])(\\d{1,3})(?![\\d,.]?\\d|[º°ªa-zA-Zà-ÿ%])',     // 5: número de questão
+    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])'            // 6: letra A-E sozinha
   ].join('|'), 'g');
   const soltas = [];
   // Títulos na ordem em que aparecem. O OCR do Google às vezes lê TODOS os títulos
@@ -731,7 +765,7 @@ function interpretarGabarito(texto, total) {
   const secoesDia = [], secoesSerie = [];
   let m;
   while ((m = re.exec(t))) {
-    if (m[1] || m[2] || m[3]) pendentes = [];   // um título nunca é seguido de uma letra que seja dele
+    if (m[1] || m[2] || m[3] || m[4]) pendentes = [];   // um título nunca é seguido de uma letra que seja dele
     if (m[1] || m[2]) {
       serie = m[1] ? m[1] + 'ª série' : m[2] + 'º ano'; dia = ''; quebra = true;
       const ant = secoesSerie[secoesSerie.length - 1];
@@ -739,22 +773,22 @@ function interpretarGabarito(texto, total) {
       if (ant && t.slice(ant.fim, m.index).trim().length < 40) secoesSerie.pop();
       secoesSerie.push({ rotulo: serie, inicio: m.index, fim: re.lastIndex });
     }
-    else if (m[3]) {
-      dia = m[3] + 'º dia'; quebra = true;
+    else if (m[3] || m[4]) {
+      dia = m[3] ? m[3] + 'º dia' : 'Caderno ' + Number(m[4]); quebra = true;
       secoesDia.push({ rotulo: [serie, dia].filter(Boolean).join(' · '), inicio: m.index });
     }
-    else if (m[4]) {
-      const n = Number(m[4]);
+    else if (m[5]) {
+      const n = Number(m[5]);
       if (n < 1 || n > 200) continue;
       if (!atual || (quebra && Object.keys(atual.respostas).length) || atual.respostas[n]) novoConjunto();
       const ja = pendentes.indexOf(n);
       if (ja !== -1) pendentes.splice(ja, 1);   // número repetido antes da letra: vale o último
       pendentes.push(n);
     } else if (pendentes.length) {
-      atual.respostas[pendentes.shift()] = m[5];   // a letra vai para o número mais antigo que espera (tabelas)
+      atual.respostas[pendentes.shift()] = m[6];   // a letra vai para o número mais antigo que espera (tabelas)
       fimUltimaLetra = re.lastIndex;
     } else {
-      soltas.push(m[5]);
+      soltas.push(m[6]);
     }
   }
 

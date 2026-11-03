@@ -248,7 +248,8 @@ function painelProfessor(token) {
   return {
     provas: provas,
     planilhaUrl: ss.getUrl(),
-    email: props_().getProperty('EMAIL_NOTIFICACAO') || ''
+    email: props_().getProperty('EMAIL_NOTIFICACAO') || '',
+    mostrarCerta: mostrarCertaAoAluno_()
   };
 }
 
@@ -477,6 +478,17 @@ function excluirProva(token, provaId) {
   return true;
 }
 
+/** O aluno vê a letra certa na correção? (padrão: sim; o professor pode desligar) */
+function mostrarCertaAoAluno_() {
+  return props_().getProperty('MOSTRAR_CERTA') !== 'nao';
+}
+
+function configurarMostrarCerta(token, mostrar) {
+  exigirProfessor_(token);
+  props_().setProperty('MOSTRAR_CERTA', mostrar ? 'sim' : 'nao');
+  return !!mostrar;
+}
+
 function configurarEmail(token, email) {
   exigirProfessor_(token);
   email = String(email || '').trim();
@@ -598,7 +610,12 @@ function enviarRespostas(payload) {
     acertos: c ? c.acertos : '',
     erros: c ? prova.total - c.acertos : '',
     total: prova.total,
-    nota: c ? c.nota : ''
+    nota: c ? c.nota : '',
+    // Para a tela de correção do aluno: só diz se acertou/errou/deixou em branco.
+    // A letra certa NÃO vai: assim ninguém passa o gabarito para a turma.
+    correcao: c ? respostas.map((r, i) => !r ? 'branco' : (r === prova.gabarito[i] ? 'certa' : 'errada')) : [],
+    // Letra certa de cada questão, só se o professor deixar (Configurações > Área do Professor).
+    certas: c && mostrarCertaAoAluno_() ? prova.gabarito.slice(0, prova.total) : []
   };
 }
 
