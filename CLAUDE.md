@@ -17,8 +17,10 @@
   de recursos.
 - **O dono do projeto fala português e é iniciante em programação.** Explique em português,
   passo a passo, sem jargão; diga onde clicar.
+- **Publicar sem perguntar (pedido do dono, 2026-11-04):** depois de terminar e testar uma
+  mudança no código, atualize o editor do Apps Script e publique a *Nova versão* da implantação
+  ativa (Implantar → Gerenciar implantações → lápis → *Nova versão* → Implantar). Avise que publicou.
 - **Sempre perguntar antes de:**
-  - publicar uma nova versão do app (Implantar → Gerenciar implantações → editar → *Nova versão*);
   - `git commit` / `git push`;
   - qualquer coisa que saia do computador (Drive, e-mail, etc.).
 - **Provas e gabaritos em PDF são de terceiros:** nunca vão para o GitHub nem para lugar
