@@ -21,9 +21,13 @@ Testado com estas provas (PDF original, com texto, não escaneado):
 
 | Prova | Testada com | Questões | Observações |
 |---|---|---|---|
-| **ENEM** | 2025, 1º dia | 90 | Redação no meio do caderno é pulada; questões 01–05 só na versão de inglês |
+| **ENEM** | 2024 e 2025, 1º e 2º dia | 90 | Redação no meio do caderno é pulada; questões 01–05 só na versão de inglês; o 2º dia mantém a numeração 91–180 (também no gabarito, que marca as questões anuladas) |
+| **Fuvest** | 2025 e 2027, 1ª fase | 90 / 80 | Número entre chaves ("{02}"), 2 colunas; gabarito com as versões V1–V4 lado a lado (o app separa e sugere a versão da prova) |
+| **Unicamp** | 2025, 1ª fase (prova Q) | 72 | Alternativas a) a d) |
+| **Unesp / Vunesp** | Unesp 2025 1ª fase; Unifipa Medicina 2025; Vestibulinho Unesp Bauru | 50–90 | "QUESTÃO 01" com etiqueta colorida |
+| **Cotuca** (Unicamp) | Processo Seletivo 2020 | 36 | Redação antes das questões; alternativas a) a e) |
 | **Vestibular Fatec** | 2020, 2024, 2025 e 2026 | 54–64 | Modelos "Questão 01" e "6. Considere..." (1 ou 2 colunas) |
-| **Vestibulinho Etec** | 1º sem. 2025 e 2026 | 50 | |
+| **Vestibulinho Etec** | 1º e 2º sem. 2025, 1º sem. 2026 | 50 | |
 | **Provão Paulista** | 2 cadernos | 42–48 | Selos numerados em 2 colunas |
 | **SARESP** | simulados | — | Selos numerados em 2 colunas |
 | **Prova Paraná Mais** | 2025, 3ª série EM, caderno 1 | 77 | Gabarito com Caderno 1 e 2 na mesma folha |
@@ -48,7 +52,7 @@ apps_script/             O APP (é isto que vai para o Google Apps Script)
   Extrator.html          o extrator em Python, embutido (GERADO: não edite à mão)
   appsscript.json        configurações do projeto
   LEIA-ME.md             passo a passo da instalação
-src/escola/              CÓDIGO-FONTE do extrator (para desenvolvimento)
+src/pdf_para_simulado/              CÓDIGO-FONTE do extrator (para desenvolvimento)
   extrair_questoes.py    acha as questões no PDF e gera as imagens
   gerar_apps_script.py   embute o extrair_questoes.py no apps_script/Extrator.html
   empacotar.py           monta o ZIP de entrega para o professor
@@ -58,7 +62,7 @@ entrega/                 textos simples para o professor (instalar e usar)
 **Por que o Python fica dentro de um `.html`?** O Google Apps Script só aceita arquivos
 `.gs` e `.html`. Por isso o `extrair_questoes.py` vai embutido no `Extrator.html` e roda no
 navegador do professor (via Pyodide). Para mudar o extrator, edite o `.py` e rode
-`uv run src/escola/gerar_apps_script.py`.
+`uv run src/pdf_para_simulado/gerar_apps_script.py`.
 
 ## Como o extrator funciona
 
@@ -86,6 +90,9 @@ Modelos de prova reconhecidos:
 - **ENEM** ("QUESTÃO 01" em uma ou duas colunas): "Texto para as Questões de 06 a 10" vira texto
   de apoio; a redação no meio do caderno é pulada e as questões continuam depois dela. As
   questões 01 a 05 aparecem duas vezes (inglês e espanhol): fica só a primeira versão (inglês).
+- **Fuvest** ("{02}" sozinho na linha, "#####" no fim da questão), em 2 colunas;
+- **Unicamp, Cotuca** e outras com **alternativas em minúscula** ("a)", "b)"...) e número sem
+  negrito ("7. As alternativas..."); a redação no começo do caderno é pulada;
 - **Prova Paraná Mais** ("001) (PS25-LP-024) ..."): "Leia o texto abaixo." vale para todas as
   questões seguintes até o próximo texto; a caixa "ATENÇÃO! Agora, você vai responder a questões
   de Matemática." dá a matéria. O gabarito em tabela (nº, código do item, letra) é lido com os
@@ -101,9 +108,9 @@ PDFs escaneados (foto, sem texto) não são suportados.
 Precisa de [uv](https://docs.astral.sh/uv/) e Python 3.14.
 
 ```bash
-uv run src/escola/extrair_questoes.py prova.pdf   # gera saida/assets/q01.jpg..., relatorio.txt e ANSWER_KEY.js
-uv run src/escola/gerar_apps_script.py            # depois de mudar o extrator: atualiza apps_script/Extrator.html
-uv run src/escola/empacotar.py "<link do app>"    # gera o ZIP para o professor
+uv run src/pdf_para_simulado/extrair_questoes.py prova.pdf   # gera saida/assets/q01.jpg..., relatorio.txt e ANSWER_KEY.js
+uv run src/pdf_para_simulado/gerar_apps_script.py            # depois de mudar o extrator: atualiza apps_script/Extrator.html
+uv run src/pdf_para_simulado/empacotar.py "<link do app>"    # gera o ZIP para o professor
 ```
 
 ## Instalação do app

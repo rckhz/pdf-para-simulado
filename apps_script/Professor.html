@@ -39,6 +39,9 @@
     .qaviso{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
     .letras{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.letra{border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:14px 0;font-size:20px;font-weight:800;cursor:pointer;color:#334155}
     .letra:hover{border-color:#2563eb}.letra.escolhida{background:#16a34a;border-color:#16a34a;color:#fff}
+    .anular{margin-top:6px;border:1px dashed #cbd5e1;background:#fff;border-radius:8px;padding:4px 10px;font-size:13px;color:#64748b;cursor:pointer}
+    .anular.escolhida{background:#f59e0b;border:1px solid #f59e0b;color:#fff;font-weight:700}
+    .qlinha.anulada .letra{opacity:.35}
     .barra-fixa{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e1e6ef;box-shadow:0 -4px 16px #14213d14;padding:12px 16px;z-index:5}
     .barra-fixa .dentro{max-width:920px;margin:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.barra-fixa .btn{margin-left:auto}
     .link-box{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.link-box input{flex:1;min-width:220px;font-size:14px;background:#f8fafc}.link-box .btn{display:inline-flex;align-items:center;justify-content:center;margin:6px 0}
@@ -142,7 +145,7 @@
   </div>
 </div>
 
-<!-- Código Python do extrator (gerado por src/escola/gerar_apps_script.py) -->
+<!-- Código Python do extrator (gerado por src/pdf_para_simulado/gerar_apps_script.py) -->
 <?!= include('Extrator') ?>
 
 <script>
@@ -159,6 +162,9 @@ function lerToken() { try { return sessionStorage.getItem('tokenProfessor') || '
 function guardarToken(t) { token = t; try { sessionStorage.setItem('tokenProfessor', t); } catch (e) {} }
 const pausa = () => new Promise(r => setTimeout(r, 0));
 const doisDigitos = n => String(n).padStart(2, '0');
+const ANULADA = 'X';   // no gabarito: questão anulada (não conta na nota)
+// Número da questão na prova (ex.: ENEM 2º dia: a 1ª questão do simulado é a 91).
+const numProva = n => Number(n) + ((prova && prova.primeira) || 1) - 1;
 const dataBR = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('pt-BR'); };
 function texto(el, t) { el.textContent = t; return el; }
 function criar(tag, classe, conteudo) {
@@ -359,6 +365,7 @@ async function processarPdf(arquivo) {
       total: total,
       materias: r.questoes.map(q => q.assunto),
       alternativas: r.questoes.map(q => q.num_alternativas),
+      primeira: r.primeira || 1,
       gabarito: r.gabarito || [],
       relatorio: r.relatorio,
       avisos: avisos
@@ -515,7 +522,7 @@ function desenharGabarito() {
     const linha = criar('div', 'qlinha');
     linha.id = 'qc' + n;
     const topo = criar('div', 'qtopo');
-    topo.append(criar('b', '', 'Questão ' + doisDigitos(n)));
+    topo.append(criar('b', '', 'Questão ' + doisDigitos(numProva(n))));
     if (prova.materias[n - 1]) topo.append(criar('span', 'tag', prova.materias[n - 1]));
     const ver = criar('button', 'ver', 'ver questão');
     topo.append(ver);
@@ -531,6 +538,10 @@ function desenharGabarito() {
       letras.append(b);
     });
     linha.append(letras);
+    // Questão anulada (pela banca ou pelo professor): não conta na nota.
+    const anular = criar('button', 'anular', 'Anular questão');
+    anular.onclick = () => marcar(n, gabarito[n - 1] === ANULADA ? '' : ANULADA);
+    linha.append(anular);
     const img = criar('div', 'qimg hidden', 'Carregando imagem...');
     img.dataset.n = n;
     linha.append(img);
@@ -623,6 +634,13 @@ function aplicarGabaritoLido(r, lido, status) {
 }
 
 function usarConjunto(c, lido, status) {
+  // O arquivo usa o número da prova (ENEM 2º dia: 91 a 180); o simulado conta de 1.
+  const desloc = (prova.primeira || 1) - 1;
+  if (desloc) {
+    const r = {};
+    Object.keys(c.respostas).forEach(n => { r[Number(n) - desloc] = c.respostas[n]; });
+    c = Object.assign({}, c, { respostas: r, anuladas: (c.anuladas || []).map(n => n - desloc) });
+  }
   const qtdAlt = n => ((prova.alternativas || [])[n - 1] === 4 ? 4 : 5);
   // letra que não existe na questão (ex.: "E" numa questão A-D): não marca e avisa
   const impossiveis = Object.keys(c.respostas).map(Number)
@@ -633,25 +651,35 @@ function usarConjunto(c, lido, status) {
   if (trocas && !confirm('O arquivo tem ' + trocas + ' resposta(s) diferente(s) das que você já marcou. ' +
                          'Usar as respostas do arquivo?')) return;
   numeros.forEach(n => { gabarito[n - 1] = c.respostas[n]; pintarQuestao(n); });
+  const anuladas = (c.anuladas || []).filter(n => n >= 1 && n <= prova.total && !c.respostas[n]);
+  anuladas.forEach(n => { gabarito[n - 1] = ANULADA; pintarQuestao(n); });
   atualizarContador();
   agendarSalvar();
 
   status.innerHTML = '';
   status.append(criar('div', 'ok-box', '✅ ' + (c.rotulo !== 'Gabarito' ? 'Usei o gabarito "' + c.rotulo + '". ' : '') +
-    'Marquei ' + numeros.length + ' de ' + prova.total + ' respostas. Confira as letras nas questões abaixo.'));
+    'Marquei ' + (numeros.length + anuladas.length) + ' de ' + prova.total + ' respostas. Confira as letras nas questões abaixo.'));
   if (c.quantidade > prova.total) {
     status.append(criar('div', 'alerta-box', 'Atenção: este gabarito tem ' + c.quantidade + ' respostas, mas a prova tem ' +
       prova.total + ' questões. Confira se é o gabarito certo.'));
   }
   if (impossiveis.length) {
     status.append(criar('div', 'alerta-box', 'O arquivo tem "E" em questões que só vão até D: ' +
-      impossiveis.map(doisDigitos).join(', ') + '. Não marquei essas. Confira se é o gabarito desta prova.'));
+      impossiveis.map(n => doisDigitos(numProva(n))).join(', ') + '. Não marquei essas. Confira se é o gabarito desta prova.'));
+  }
+  if (anuladas.length) {
+    status.append(criar('div', 'alerta-box', 'Questões anuladas no gabarito oficial: ' +
+      anuladas.map(n => doisDigitos(numProva(n))).join(', ') + '. Já marquei como anuladas: elas não contam na nota ' +
+      '(a prova passa a valer ' + (prova.total - gabarito.filter(l => l === ANULADA).length) + '). ' +
+      'Se preferir dar uma resposta, clique na letra.'));
   }
   const faltando = [];
-  for (let n = 1; n <= prova.total; n++) if (!c.respostas[n] || impossiveis.indexOf(n) !== -1) faltando.push(n);
+  for (let n = 1; n <= prova.total; n++) {
+    if ((!c.respostas[n] && anuladas.indexOf(n) === -1) || impossiveis.indexOf(n) !== -1) faltando.push(n);
+  }
   if (faltando.length) {
     status.append(criar('div', 'alerta-box', 'Não encontrei a resposta destas questões: ' +
-      faltando.map(doisDigitos).join(', ') + '. Marque essas à mão.'));
+      faltando.map(n => doisDigitos(numProva(n))).join(', ') + '. Marque essas à mão.'));
   }
   status.append(detalhesLidos(lido, c));
 }
@@ -661,7 +689,7 @@ function detalhesLidos(lido, c) {
   const d = criar('details');
   d.append(criar('summary', 'small', 'Ver o que foi lido do arquivo'));
   if (c) {
-    const pares = Object.keys(c.respostas).map(n => doisDigitos(n) + '-' + c.respostas[n]).join('  ');
+    const pares = Object.keys(c.respostas).map(n => doisDigitos(numProva(n)) + '-' + c.respostas[n]).join('  ');
     d.append(criar('p', 'small', pares));
   }
   const pre = criar('pre', 'small', String(lido || '').slice(0, 3000));
@@ -715,6 +743,15 @@ async function prepararParaEnvio(arquivo) {
  */
 function interpretarGabarito(texto, total) {
   let t = String(texto || '');
+  // "Gabarito de correspondência" (Fuvest): tabela que liga as versões da prova, não é gabarito.
+  t = t.split(/gabarito\s+de\s+correspond[êe]ncia/i)[0];
+  // Nomes das versões da prova ("PROVA V1", "Versão A", "Tipo 2"), na ordem em que aparecem.
+  const versoes = [];
+  (t.match(/\b(?:prova|vers[ãa]o|tipo)\s+(?:V\d{1,2}|\d{1,2}|[A-D])(?![\wÀ-ÿ])/gi) || []).forEach(v => {
+    const nome = v.replace(/\s+/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase())
+      .replace(/ (v?\w+)$/, (m, c) => ' ' + c.toUpperCase());
+    if (versoes.indexOf(nome) === -1) versoes.push(nome);
+  });
   t = t
     // letra minúscula colada ao número ("1-a", "02) b") vira maiúscula
     .replace(/(\d{1,3}\s*[-–—.:)=]\s*)\(?([a-e])\)?(?![a-zà-ÿ])/g, (m, antes, l) => antes + l.toUpperCase())
@@ -741,7 +778,12 @@ function interpretarGabarito(texto, total) {
     // códigos de letra+número colados ("C1", "C5" = critério de desempate; "1SEM26"; "H12" = habilidade)
     // não são respostas nem números de questão
     .replace(/(?<![A-Za-zÀ-ÿ\d])[A-Za-z]{1,4}\d+(?![A-Za-zÀ-ÿ\d])/g, ' ')
-    .replace(/(?<![A-Za-zÀ-ÿ\d])\d+[A-Za-z]{2,}\d*(?![A-Za-zÀ-ÿ\d])/g, ' ');
+    .replace(/(?<![A-Za-zÀ-ÿ\d])\d+[A-Za-z]{2,}\d*(?![A-Za-zÀ-ÿ\d])/g, ' ')
+    // questão anulada (ex.: ENEM, "123 Anulado"): vira "#", que ocupa o lugar da letra
+    .replace(/(?<![A-Za-zÀ-ÿ])anulad[ao]s?(?![A-Za-zÀ-ÿ])/gi, ' # ');
+
+  const lado = gabaritosLadoALado(t, total, versoes);
+  if (lado) return { conjuntos: lado };
 
   const conjuntos = [];
   let atual = null, pendentes = [], serie = '', dia = '', quebra = false, fimUltimaLetra = 0;
@@ -757,7 +799,8 @@ function interpretarGabarito(texto, total) {
     '(\\d)\\s*[ºo°]\\s*[Dd][Ii][Aa](?![a-zà-ÿ])',               // 3: "1º dia"
     '[Cc][Aa][Dd][Ee][Rr][Nn][Oo]\\s*(\\d{1,2})(?!\\d)',          // 4: "Caderno 2"
     '(?<![\\d,.])(\\d{1,3})(?![\\d,.]?\\d|[º°ªa-zA-Zà-ÿ%])',     // 5: número de questão
-    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])'            // 6: letra A-E sozinha
+    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])',           // 6: letra A-E sozinha
+    '(#)'                                                         // 7: questão anulada
   ].join('|'), 'g');
   const soltas = [];
   // Títulos na ordem em que aparecem. O OCR do Google às vezes lê TODOS os títulos
@@ -780,10 +823,23 @@ function interpretarGabarito(texto, total) {
     else if (m[5]) {
       const n = Number(m[5]);
       if (n < 1 || n > 200) continue;
-      if (!atual || (quebra && Object.keys(atual.respostas).length) || atual.respostas[n]) novoConjunto();
+      // Um título (série, dia, caderno) só começa outro gabarito se a numeração recomeça;
+      // se ela continua (ex.: ENEM, "CADERNO 7" lido no meio, entre a 135 e a 136), é o mesmo.
+      const numerosAtual = atual ? Object.keys(atual.respostas).map(Number) : [];
+      if (quebra && numerosAtual.length && n > Math.max.apply(null, numerosAtual)) {
+        quebra = false;
+        if (!atual.dia) atual.dia = dia;
+        if (!atual.serie) atual.serie = serie;
+      }
+      if (!atual || (quebra && numerosAtual.length) || atual.respostas[n]) novoConjunto();
       const ja = pendentes.indexOf(n);
       if (ja !== -1) pendentes.splice(ja, 1);   // número repetido antes da letra: vale o último
+      // Números que esperam letra vêm em sequência ("01 02 03" de uma tabela). Um número solto
+      // antes (ex.: ENEM, o "2" de "2º dia" logo antes de "91 D") não é questão.
+      if (pendentes.length && n !== pendentes[pendentes.length - 1] + 1) pendentes = [];
       pendentes.push(n);
+    } else if (m[7]) {
+      if (pendentes.length) (atual.anuladas = atual.anuladas || []).push(pendentes.shift());
     } else if (pendentes.length) {
       atual.respostas[pendentes.shift()] = m[6];   // a letra vai para o número mais antigo que espera (tabelas)
       fimUltimaLetra = re.lastIndex;
@@ -812,6 +868,10 @@ function interpretarGabarito(texto, total) {
       c.texto = t.slice(secoes[k].inicio, secoes[k + 1] ? secoes[k + 1].inicio : t.length);
     });
   }
+  // Uma tabela por versão da prova, uma depois da outra (ex.: "PROVA V1", "PROVA V2"...).
+  if (validos.length > 1 && !secoes.length && versoes.length === validos.length) {
+    validos.forEach((c, k) => { c.rotulo = versoes[k]; });
+  }
   // Nomes repetidos (não deu para saber qual é qual): numera pela posição na folha.
   validos.forEach((c, k) => {
     if (validos.filter(x => x.rotulo === c.rotulo).length > 1) c.rotulo = (k + 1) + 'º da folha · ' + c.rotulo;
@@ -826,7 +886,49 @@ function interpretarGabarito(texto, total) {
       validos = [{ rotulo: 'Gabarito', respostas: respostas, quantidade: total, texto: t }];
     }
   }
-  return { conjuntos: validos.map(c => ({ rotulo: c.rotulo, respostas: c.respostas, quantidade: c.quantidade, texto: c.texto })) };
+  return { conjuntos: validos.map(c => ({ rotulo: c.rotulo, respostas: c.respostas, quantidade: c.quantidade,
+                                          texto: c.texto, anuladas: c.anuladas || [] })) };
+}
+
+/**
+ * Várias versões da prova numa tabela só, lado a lado (ex.: Fuvest, "PROVA V1 | V2 | V3 | V4"):
+ * cada linha traz "1 E 41 C   1 A 41 C   1 B 41 C   1 A 41 A". Lendo em ordem, os mesmos
+ * números se repetem a cada poucos pares. Aqui cada pedaço da linha vai para a sua versão.
+ * Devolve a lista de conjuntos, ou null se a folha não for assim.
+ */
+function gabaritosLadoALado(t, total, versoes) {
+  const re = /(?<![\d,.])(\d{1,3})(?![\d,.]?\d|[º°ªa-zA-Zà-ÿ%])|(?<![A-Za-zÀ-ÿ])\(?([A-E])\)?(?![A-Za-zÀ-ÿ])/g;
+  const tokens = [];
+  let m;
+  while ((m = re.exec(t))) tokens.push(m[1] ? Number(m[1]) : m[2]);
+  const pares = [];   // número seguido da sua letra
+  for (let i = 0; i + 1 < tokens.length; i++) {
+    if (typeof tokens[i] === 'number' && typeof tokens[i + 1] === 'string') { pares.push([tokens[i], tokens[i + 1]]); i++; }
+  }
+  if (!pares.length) return null;
+  // o primeiro número volta a aparecer a cada "largura" pares: largura = pares de cada versão por linha
+  const largura = pares.findIndex((p, i) => i > 0 && p[0] === pares[0][0]);
+  if (largura < 1 || largura > 10) return null;
+  let qtd = 1;
+  while (pares[qtd * largura] && pares[qtd * largura][0] === pares[0][0]) qtd++;
+  if (qtd < 2) return null;
+  const sets = Array.from({ length: qtd }, () => ({}));
+  const linha = qtd * largura;
+  let linhas = 0;
+  for (let r = 0; (r + 1) * linha <= pares.length; r++) {
+    const pedaco = pares.slice(r * linha, (r + 1) * linha);
+    const nums = g => pedaco.slice(g * largura, (g + 1) * largura).map(p => p[0]).join(',');
+    // toda versão traz os mesmos números na mesma linha; senão a tabela acabou
+    if (!sets.every((s, g) => nums(g) === nums(0) && pedaco.slice(g * largura, (g + 1) * largura).every(p => !s[p[0]]))) break;
+    sets.forEach((s, g) => pedaco.slice(g * largura, (g + 1) * largura).forEach(p => { s[p[0]] = p[1]; }));
+    linhas++;
+  }
+  if (linhas < 3 || Object.keys(sets[0]).length < Math.min(3, Math.ceil(total / 2))) return null;
+  return sets.map((respostas, k) => ({
+    rotulo: versoes.length === qtd ? versoes[k] : 'Versão ' + (k + 1),
+    respostas: respostas, quantidade: Object.keys(respostas).length,
+    texto: versoes.length === qtd ? versoes[k] : ''
+  }));
 }
 
 /**
@@ -845,6 +947,9 @@ function sugerirConjunto(conjuntos, total, materias, nomeProva) {
     const partes = c.rotulo.split(' · ');
     if (partes[0] && /serie|ano/.test(simples(partes[0])) && nome.indexOf(simples(partes[0])) !== -1) p += 3;
     if (partes[1] && nome.indexOf(simples(partes[1])) !== -1) p += 3;
+    // versão da prova ("Prova V1") no nome do simulado ("fuvest2027-fase1-V1")
+    const versao = /^(?:prova|vers[ãa]o|tipo) (\w+)$/i.exec(c.rotulo);
+    if (versao && new RegExp('(^|[^a-z0-9])' + simples(versao[1]) + '([^a-z0-9]|$)').test(nome)) p += 3;
     return p;
   });
   const ordem = conjuntos.map((c, i) => i).sort((a, b) => notas[b] - notas[a]);
@@ -855,7 +960,7 @@ function sugerirConjunto(conjuntos, total, materias, nomeProva) {
 
 function mostrarImagem(caixa) {
   const n = Number(caixa.dataset.n), chave = prova.id + ':' + n;
-  const por = src => { caixa.innerHTML = ''; const i = new Image(); i.src = src; i.alt = 'Questão ' + n; caixa.append(i); };
+  const por = src => { caixa.innerHTML = ''; const i = new Image(); i.src = src; i.alt = 'Questão ' + numProva(n); caixa.append(i); };
   if (imagens[chave]) return por(imagens[chave]);
   filaImagens(() => api('imagemProfessor', prova.id, n).then(src => { imagens[chave] = src; por(src); })
     .catch(err => { caixa.textContent = 'Não foi possível carregar a imagem (' + err.message + ').'; }));
@@ -869,8 +974,15 @@ function filaImagens(tarefa) {
 }
 function pintarQuestao(n) {
   const card = $('qc' + n);
+  const anulada = gabarito[n - 1] === ANULADA;
   card.classList.toggle('marcada', !!gabarito[n - 1]);
+  card.classList.toggle('anulada', anulada);
   card.querySelectorAll('.letra').forEach(b => b.classList.toggle('escolhida', b.textContent === gabarito[n - 1]));
+  const anular = card.querySelector('.anular');
+  if (anular) {
+    anular.classList.toggle('escolhida', anulada);
+    anular.textContent = anulada ? 'Anulada (não conta na nota) · desfazer' : 'Anular questão';
+  }
 }
 function marcar(n, letra) {
   const eraVazia = !gabarito[n - 1];
@@ -886,7 +998,10 @@ function marcar(n, letra) {
 }
 function atualizarContador() {
   const faltam = gabarito.filter(l => !l).length;
-  $('gabContador').textContent = faltam ? 'Faltam ' + faltam + ' de ' + prova.total : '✅ Gabarito completo';
+  const anuladas = gabarito.filter(l => l === ANULADA).length;
+  $('gabContador').textContent = faltam ? 'Faltam ' + faltam + ' de ' + prova.total
+    : '✅ Gabarito completo' + (anuladas ? ' · ' + anuladas + (anuladas === 1 ? ' anulada' : ' anuladas') +
+                               ' (a prova vale ' + (prova.total - anuladas) + ')' : '');
   $('gabContinuar').classList.toggle('verde', !faltam);
   $('gabContinuar').classList.toggle('primary', !!faltam);
 }
@@ -1006,7 +1121,7 @@ function desenharResultados() {
 
     // Questões que a turma mais errou
     if (r.gabaritoCompleto && r.questoes.length) {
-      const dificeis = r.questoes.slice().sort((a, b) => a.percentual - b.percentual).slice(0, 5);
+      const dificeis = r.questoes.filter(q => q.correta !== ANULADA).sort((a, b) => a.percentual - b.percentual).slice(0, 5);
       const card = criar('div', 'card');
       card.append(criar('h2', '', 'Questões que a turma mais errou'));
       const t = criar('table');
@@ -1014,7 +1129,7 @@ function desenharResultados() {
       dificeis.forEach(q => {
         const tr = criar('tr');
         const mais = Object.keys(q.marcadas).sort((a, b) => q.marcadas[b] - q.marcadas[a])[0];
-        [doisDigitos(q.numero), q.percentual + '%', q.correta, mais].forEach(v => tr.append(criar('td', '', v)));
+        [doisDigitos(numProva(q.numero)), q.percentual + '%', q.correta, mais].forEach(v => tr.append(criar('td', '', v)));
         t.append(tr);
       });
       card.append(t);

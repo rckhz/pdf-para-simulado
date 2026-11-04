@@ -73,9 +73,9 @@ aparecem sozinhas no Drive no primeiro uso.
 
 ## Atualizar o sistema depois de alguma mudança
 
-1. Se você mudou o recortador (`src/escola/extrair_questoes.py`), rode
-   `uv run src/escola/gerar_apps_script.py` para gerar um `Extrator.html` novo.
-   Para montar o ZIP do professor: `uv run src/escola/empacotar.py "<link do app>"`.
+1. Se você mudou o recortador (`src/pdf_para_simulado/extrair_questoes.py`), rode
+   `uv run src/pdf_para_simulado/gerar_apps_script.py` para gerar um `Extrator.html` novo.
+   Para montar o ZIP do professor: `uv run src/pdf_para_simulado/empacotar.py "<link do app>"`.
 2. Cole os arquivos alterados no editor do Apps Script e salve.
 3. Se o `appsscript.json` mudou, ou se o código passou a usar algum serviço novo do
    Google: no editor, escolha a função `autorizarPermissoes` no menu do topo, clique

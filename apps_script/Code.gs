@@ -22,8 +22,10 @@ const NOME_PLANILHA = 'Simulados - Resultados';
 const NOME_PASTA = 'Simulados - Imagens das Questões';
 const ABA_PROVAS = 'Provas';
 const COLUNAS_PROVAS = ['ID', 'Nome', 'Questões', 'Situação', 'Criado em', 'Pasta', 'Aba de respostas',
-                        'Gabarito', 'Matérias', 'Imagens', 'Avisos', 'Alternativas'];
+                        'Gabarito', 'Matérias', 'Imagens', 'Avisos', 'Alternativas', 'Primeira'];
 const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+const ANULADA = 'X';   // no gabarito: questão anulada (não conta na nota; a prova vale menos)
+const valeNoGabarito_ = l => LETRAS.indexOf(l) !== -1 || l === ANULADA;
 const COLUNAS_FIXAS_RESPOSTAS = ['Data/hora', 'Nome completo', 'Turma', 'Acertos', 'Nota (0-10)', 'Situação'];
 const SITUACAO = { RASCUNHO: 'Rascunho', PUBLICADO: 'Publicado', ENCERRADO: 'Encerrado' };
 const DURACAO_SESSAO_SEG = 6 * 60 * 60;   // o professor fica logado por 6 horas
@@ -121,7 +123,9 @@ function lerProvas_() {
     imagens: lerJson_(v[9], []),
     avisos: lerJson_(v[10], {}),
     // quantas alternativas cada questão tem (4 = A-D, 5 = A-E); simulados antigos: todas 5
-    alternativas: lerJson_(v[11], [])
+    alternativas: lerJson_(v[11], []),
+    // número da 1ª questão (ex.: ENEM 2º dia começa na 91); simulados antigos: 1
+    primeira: Number(v[12]) > 1 ? Number(v[12]) : 1
   })).filter(p => p.id);
 }
 
@@ -149,7 +153,7 @@ function salvarCampos_(prova, campos) {
 }
 
 function gabaritoCompleto_(prova) {
-  return prova.gabarito.length === prova.total && prova.gabarito.every(l => LETRAS.indexOf(l) !== -1);
+  return prova.gabarito.length === prova.total && prova.gabarito.every(valeNoGabarito_);
 }
 
 function linkAluno_(id) {
@@ -242,7 +246,7 @@ function painelProfessor(token) {
     return {
       id: p.id, nome: p.nome, total: p.total, situacao: p.situacao, criadoEm: p.criadoEm,
       envios: aba ? Math.max(0, aba.getLastRow() - 1) : 0,
-      faltamGabarito: p.total - p.gabarito.filter(l => LETRAS.indexOf(l) !== -1).length
+      faltamGabarito: p.total - p.gabarito.filter(valeNoGabarito_).length
     };
   });
   return {
@@ -275,8 +279,9 @@ function criarProva(token, dados) {
   let nomeAba = base, k = 2;
   while (ss.getSheetByName(nomeAba)) nomeAba = base + ' (' + (k++) + ')';
   const aba = ss.insertSheet(nomeAba);
+  const primeira = Math.max(1, Math.min(200, Math.floor(Number(dados.primeira) || 1)));
   const cab = COLUNAS_FIXAS_RESPOSTAS.slice();
-  for (let i = 1; i <= total; i++) cab.push('Q' + String(i).padStart(2, '0'));
+  for (let i = 1; i <= total; i++) cab.push('Q' + String(i + primeira - 1).padStart(2, '0'));
   aba.getRange(1, 1, 1, cab.length).setValues([cab]).setFontWeight('bold');
   aba.setFrozenRows(1);
   aba.setFrozenColumns(2);
@@ -284,20 +289,21 @@ function criarProva(token, dados) {
   const gabarito = [];
   for (let i = 0; i < total; i++) {
     const l = dados.gabarito && dados.gabarito[i];
-    gabarito.push(LETRAS.indexOf(l) !== -1 ? l : '');
+    gabarito.push(valeNoGabarito_(l) ? l : '');
   }
 
   const alternativas = [];
   for (let i = 0; i < total; i++) alternativas.push((dados.alternativas || [])[i] === 4 ? 4 : 5);
 
   const abaP = abaProvas_();
-  // planilhas criadas antes desta versão não têm o título da coluna "Alternativas"
-  if (abaP.getRange(1, COLUNAS_PROVAS.length).getValue() !== 'Alternativas') {
-    abaP.getRange(1, COLUNAS_PROVAS.length).setValue('Alternativas').setFontWeight('bold');
-  }
+  // planilhas criadas antes desta versão não têm o título das colunas mais novas
+  ['Alternativas', 'Primeira'].forEach(titulo => {
+    const col = COLUNAS_PROVAS.indexOf(titulo) + 1;
+    if (abaP.getRange(1, col).getValue() !== titulo) abaP.getRange(1, col).setValue(titulo).setFontWeight('bold');
+  });
   abaP.appendRow([id, nome, total, SITUACAO.RASCUNHO, criadoEm, pasta.getId(), nomeAba,
     JSON.stringify(gabarito), JSON.stringify(dados.materias || []), '[]', JSON.stringify(dados.avisos || {}),
-    JSON.stringify(alternativas)]);
+    JSON.stringify(alternativas), primeira]);
   return id;
 }
 
@@ -332,7 +338,7 @@ function abrirProva(token, provaId) {
   return {
     id: p.id, nome: p.nome, total: p.total, situacao: p.situacao, criadoEm: p.criadoEm,
     gabarito: p.gabarito, materias: p.materias, avisos: p.avisos, alternativas: p.alternativas,
-    imagensOk: p.imagens.length === p.total,
+    primeira: p.primeira, imagensOk: p.imagens.length === p.total,
     envios: aba ? Math.max(0, aba.getLastRow() - 1) : 0,
     link: linkAluno_(p.id),
     pastaUrl: 'https://drive.google.com/drive/folders/' + p.pastaId
@@ -351,7 +357,7 @@ function salvarGabarito(token, provaId, gabarito) {
   const limpo = [];
   for (let i = 0; i < prova.total; i++) {
     const l = String((gabarito && gabarito[i]) || '').toUpperCase();
-    limpo.push(LETRAS.indexOf(l) !== -1 ? l : '');
+    limpo.push(valeNoGabarito_(l) ? l : '');
   }
   salvarCampos_(prova, { 'Gabarito': limpo });
   prova.gabarito = limpo;
@@ -506,12 +512,15 @@ function configurarEmail(token, email) {
 /** Calcula acertos/nota de uma lista de respostas. Devolve null se o gabarito estiver incompleto. */
 function corrigir_(prova, respostas) {
   if (!gabaritoCompleto_(prova)) return null;
-  const acertos = respostas.reduce((t, r, i) => t + (r === prova.gabarito[i] ? 1 : 0), 0);
-  return { acertos: acertos, nota: Math.round(acertos / prova.total * 100) / 10 };
+  // Questão anulada não conta: nem como acerto, nem como erro (90 questões com 2 anuladas valem 88).
+  const validas = prova.gabarito.slice(0, prova.total).filter(l => l !== ANULADA).length;
+  const acertos = respostas.reduce((t, r, i) => t + (r && r === prova.gabarito[i] ? 1 : 0), 0);
+  return { acertos: acertos, validas: validas, nota: validas ? Math.round(acertos / validas * 100) / 10 : 0 };
 }
 
 function cores_(prova, respostas, corrigido) {
-  return respostas.map((r, i) => !corrigido ? null : (r === prova.gabarito[i] ? VERDE : (r ? VERMELHO : CINZA)));
+  return respostas.map((r, i) => !corrigido || prova.gabarito[i] === ANULADA ? null
+    : (r === prova.gabarito[i] ? VERDE : (r ? VERMELHO : CINZA)));
 }
 
 /** Recalcula todas as notas da aba (chamado sempre que o gabarito muda). */
@@ -554,7 +563,8 @@ function dadosSimulado(provaId) {
       ? 'Este simulado já foi encerrado pelo professor.'
       : 'Este simulado ainda não foi liberado pelo professor.');
   }
-  return { id: p.id, nome: p.nome, total: p.total, materias: p.materias, alternativas: p.alternativas };
+  return { id: p.id, nome: p.nome, total: p.total, materias: p.materias, alternativas: p.alternativas,
+           primeira: p.primeira };
 }
 
 function imagemQuestao(provaId, numero) {
@@ -608,12 +618,14 @@ function enviarRespostas(payload) {
   return {
     corrigido: !!c,
     acertos: c ? c.acertos : '',
-    erros: c ? prova.total - c.acertos : '',
-    total: prova.total,
+    erros: c ? c.validas - c.acertos : '',
+    total: c ? c.validas : prova.total,   // sem as anuladas
+    anuladas: c ? prova.total - c.validas : 0,
     nota: c ? c.nota : '',
     // Para a tela de correção do aluno: só diz se acertou/errou/deixou em branco.
     // A letra certa NÃO vai: assim ninguém passa o gabarito para a turma.
-    correcao: c ? respostas.map((r, i) => !r ? 'branco' : (r === prova.gabarito[i] ? 'certa' : 'errada')) : [],
+    correcao: c ? respostas.map((r, i) => prova.gabarito[i] === ANULADA ? 'anulada'
+      : (!r ? 'branco' : (r === prova.gabarito[i] ? 'certa' : 'errada'))) : [],
     // Letra certa de cada questão, só se o professor deixar (Configurações > Área do Professor).
     certas: c && mostrarCertaAoAluno_() ? prova.gabarito.slice(0, prova.total) : []
   };
@@ -638,7 +650,7 @@ function avisarPorEmail_(prova, nome, turma, quando, c) {
       subject: 'Novo envio - ' + prova.nome,
       body: 'Um aluno enviou as respostas.\n\nSimulado: ' + prova.nome + '\nNome: ' + nome +
             '\nTurma: ' + turma + '\nData: ' + quando.toLocaleString('pt-BR') +
-            '\nResultado: ' + (c ? c.acertos + '/' + prova.total + ' (nota ' + c.nota + ')' : 'aguardando gabarito') +
+            '\nResultado: ' + (c ? c.acertos + '/' + c.validas + ' (nota ' + c.nota + ')' : 'aguardando gabarito') +
             '\n\nPlanilha: ' + planilha_().getUrl()
     });
   } catch (e) {

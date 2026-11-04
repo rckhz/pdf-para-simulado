@@ -2,7 +2,7 @@
 Monta o ZIP para mandar ao professor: os 3 textos de entrega/ + os 5 arquivos de apps_script/.
 
 Uso (na pasta do projeto):
-    uv run src/escola/empacotar.py "https://script.google.com/macros/s/.../exec?professor"
+    uv run src/pdf_para_simulado/empacotar.py "https://script.google.com/macros/s/.../exec?professor"
 
 O link do professor é colocado no "1 - LEIA PRIMEIRO.txt" só dentro do ZIP; ele não
 fica salvo nos arquivos do repositório (assim o link não vai parar no GitHub).

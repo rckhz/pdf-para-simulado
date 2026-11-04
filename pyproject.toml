@@ -1,5 +1,5 @@
 [project]
-name = "escola"
+name = "pdf-para-simulado"
 version = "0.1.0"
 description = "Extrai as questões de provas em PDF e gera um simulado online (Google Apps Script)"
 readme = "README.md"

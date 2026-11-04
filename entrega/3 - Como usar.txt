@@ -14,7 +14,8 @@ Abra o seu link de professor (o que termina em ?professor) e digite a senha.
    quadradinho (01, 02, 03...), como SARESP e Provão Paulista, ou com a
    palavra "Questão 01", como o Vestibulinho Etec e o Vestibular Fatec,
    ou com o número em negrito no começo ("6. Considere..."), e também
-   com o caderno do ENEM (90 questões) e com a Prova Paraná Mais.
+   com o caderno do ENEM (90 questões), Fuvest, Unicamp, Unesp,
+   Cotuca e com a Prova Paraná Mais.
    No ENEM, as questões 01 a 05 de língua estrangeira entram só na
    versão de INGLÊS.
    Provas escaneadas (foto) não funcionam.

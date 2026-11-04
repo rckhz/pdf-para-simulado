@@ -8,7 +8,7 @@
     body{margin:0;padding:22px 12px}.wrap{max-width:900px;margin:auto}.top,.panel,.question{background:#fff;border:1px solid #e1e6ef;border-radius:16px;box-shadow:0 5px 20px #14213d0a}
     .top{padding:22px;margin-bottom:14px}.top h1{margin:0 0 7px;font-size:23px}.muted{color:#64748b;font-size:14px}.panel{padding:18px;margin-bottom:14px}.fields{display:grid;grid-template-columns:2fr 1fr;gap:12px}label{font-weight:700;font-size:13px;display:block;margin-bottom:6px}input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px}
     .progress{height:8px;background:#e8edf5;border-radius:20px;overflow:hidden;margin-top:12px}.bar{height:100%;background:#2563eb;width:0;transition:width .2s}.qhead{display:flex;justify-content:space-between;gap:12px;align-items:center}.tag{font-size:12px;color:#1d4ed8;background:#eff6ff;padding:6px 9px;border-radius:20px}.question{padding:18px}.question h2{margin:0;font-size:19px}.qimage{width:100%;height:auto;display:block;margin:16px auto;border:1px solid #e5e7eb;border-radius:8px;background:#fff}.choices{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.choice{border:1px solid #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-weight:700;cursor:pointer}.choice input{width:auto;margin-right:5px;accent-color:#2563eb}.choice:has(input:checked){background:#eff6ff;border-color:#2563eb;color:#1d4ed8}
-    .nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:700;cursor:pointer;font-size:14px}.primary{background:#2563eb;color:#fff}.secondary{background:#e8edf5;color:#1e293b}.btn:disabled{opacity:.45;cursor:not-allowed}.nav .primary{margin-left:auto}.status{margin-top:12px;font-size:14px;color:#b45309}.hidden{display:none!important}.done{text-align:center;padding:30px}.footer{font-size:12px;color:#64748b;text-align:center;margin:18px}.summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0}.summary-item{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;font-weight:700;color:#1e293b}.summary-item small{display:block;font-size:10px;font-weight:500;margin-top:3px;color:#64748b}.summary-item.answered{border-color:#86efac;background:#f0fdf4}.summary-item.missing{border-color:#fca5a5;background:#fef2f2;color:#b91c1c}.summary-item:hover{outline:2px solid #93c5fd}.summary-item.certa{border-color:#86efac;background:#f0fdf4;color:#166534}.summary-item.errada{border-color:#fca5a5;background:#fef2f2;color:#b91c1c}.summary-item.branco{border-color:#cbd5e1;background:#f1f5f9;color:#64748b}.summary-item.aberta{outline:3px solid #2563eb}
+    .nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:700;cursor:pointer;font-size:14px}.primary{background:#2563eb;color:#fff}.secondary{background:#e8edf5;color:#1e293b}.btn:disabled{opacity:.45;cursor:not-allowed}.nav .primary{margin-left:auto}.status{margin-top:12px;font-size:14px;color:#b45309}.hidden{display:none!important}.done{text-align:center;padding:30px}.footer{font-size:12px;color:#64748b;text-align:center;margin:18px}.summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0}.summary-item{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;font-weight:700;color:#1e293b}.summary-item small{display:block;font-size:10px;font-weight:500;margin-top:3px;color:#64748b}.summary-item.answered{border-color:#86efac;background:#f0fdf4}.summary-item.missing{border-color:#fca5a5;background:#fef2f2;color:#b91c1c}.summary-item:hover{outline:2px solid #93c5fd}.summary-item.certa{border-color:#86efac;background:#f0fdf4;color:#166534}.summary-item.errada{border-color:#fca5a5;background:#fef2f2;color:#b91c1c}.summary-item.branco{border-color:#cbd5e1;background:#f1f5f9;color:#64748b}.summary-item.anulada{border-color:#fcd34d;background:#fffbeb;color:#b45309}.summary-item.aberta{outline:3px solid #2563eb}
     .correcao{text-align:left;max-width:760px;margin:24px auto 0}.correcao h3{margin:0 0 4px}.legenda{font-size:13px;color:#64748b}.legenda b{margin-right:10px}
     .escolha{display:block;width:100%;text-align:left;margin-top:10px;padding:16px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font-size:16px;font-weight:700;cursor:pointer}.escolha:hover{border-color:#2563eb;background:#eff6ff}.escolha small{display:block;font-weight:400;color:#64748b;margin-top:4px}
     @media(max-width:600px){.fields{grid-template-columns:1fr}.choices{grid-template-columns:repeat(5,1fr);gap:5px}.choice{padding:10px 3px;font-size:13px}.top h1{font-size:20px}.question{padding:12px}.summary-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.summary-item{padding:9px 2px;font-size:13px}}
@@ -64,7 +64,7 @@
     </div>
     <div id="correcao" class="correcao hidden">
       <h3>Sua correção</h3>
-      <div class="legenda"><b style="color:#166534">✓ acertou</b><b style="color:#b91c1c">✗ errou</b><b style="color:#64748b">— em branco</b> · Clique numa questão para ver de novo.</div>
+      <div class="legenda"><b style="color:#166534">✓ acertou</b><b style="color:#b91c1c">✗ errou</b><b style="color:#64748b">— em branco</b><b style="color:#b45309">⊘ anulada</b> · Clique numa questão para ver de novo.</div>
       <div id="correcaoGrade" class="summary-grid"></div>
       <div id="correcaoQuestao" class="hidden">
         <div class="qhead"><h2 id="correcaoTitulo"></h2><span class="tag" id="correcaoStatus"></span></div>
@@ -82,6 +82,8 @@
 // (dentro de <script>, o Apps Script já escreve o valor como texto JavaScript, entre aspas).
 let provaId = <?= provaId ?>;
 let questions = [];   // [{number, subject}]
+let primeira = 1;     // número da 1ª questão na prova (ENEM 2º dia: 91)
+const rotuloQ = n => String(n + primeira - 1).padStart(2, '0');
 let total = 0;
 let current = 0;
 let answers = {};
@@ -178,7 +180,7 @@ function showQuestion() {
   const q = questions[current];
   $('questionArea').classList.remove('hidden');
   $('reviewArea').classList.add('hidden');
-  $('qtitle').textContent = 'Questão ' + String(q.number).padStart(2, '0');
+  $('qtitle').textContent = 'Questão ' + rotuloQ(q.number);
   $('subject').textContent = q.subject;
   $('subject').classList.toggle('hidden', !q.subject);
   $('qimage').classList.add('hidden');
@@ -240,9 +242,9 @@ function openReview() {
     const item = document.createElement('button');
     item.type = 'button';
     item.className = 'summary-item ' + (answered ? 'answered' : 'missing');
-    item.innerHTML = String(i).padStart(2, '0') +
+    item.innerHTML = rotuloQ(i) +
       '<small>' + (answered ? 'Resposta: ' + answers[i] : 'Não respondida') + '</small>';
-    item.title = 'Clique para ir à questão ' + String(i).padStart(2, '0');
+    item.title = 'Clique para ir à questão ' + rotuloQ(i);
     item.addEventListener('click', () => {
       current = i - 1;
       showQuestion();
@@ -292,7 +294,9 @@ $('submit').onclick = () => {
       if (result.corrigido) {
         $('studentResult').classList.remove('hidden');
         $('resultHits').textContent = result.acertos + '/' + result.total;
-        $('resultWrong').textContent = result.erros + ' questão(ões) incorreta(s), incluindo as que ficaram em branco.';
+        $('resultWrong').textContent = result.erros + ' questão(ões) incorreta(s), incluindo as que ficaram em branco.' +
+          (result.anuladas ? ' ' + result.anuladas + (result.anuladas === 1 ? ' questão foi anulada e não conta'
+                                                      : ' questões foram anuladas e não contam') + ' na nota.' : '');
         mostrarCorrecao(result.correcao || [], result.certas || []);
       } else {
         $('studentResult').classList.add('hidden');
@@ -320,10 +324,10 @@ function mostrarCorrecao(correcao, certas) {
     const item = document.createElement('button');
     item.type = 'button';
     item.className = 'summary-item ' + estado;
-    const simbolo = estado === 'certa' ? '✓' : (estado === 'errada' ? '✗' : '—');
-    item.innerHTML = simbolo + ' ' + String(n).padStart(2, '0') +
+    const simbolo = estado === 'certa' ? '✓' : (estado === 'errada' ? '✗' : (estado === 'anulada' ? '⊘' : '—'));
+    item.innerHTML = simbolo + ' ' + rotuloQ(n) +
       '<small>' + (answers[n] ? 'Você: ' + answers[n] : 'Em branco') +
-      (estado !== 'certa' && certasCorrecao[i] ? ' · Certa: ' + certasCorrecao[i] : '') + '</small>';
+      (estado === 'anulada' ? ' · Anulada' : (estado !== 'certa' && certasCorrecao[i] ? ' · Certa: ' + certasCorrecao[i] : '')) + '</small>';
     item.onclick = () => verQuestaoCorrigida(n, estado, item);
     grade.append(item);
   });
@@ -334,9 +338,9 @@ function verQuestaoCorrigida(n, estado, item) {
   document.querySelectorAll('#correcaoGrade .summary-item').forEach(b => b.classList.remove('aberta'));
   item.classList.add('aberta');
   $('correcaoQuestao').classList.remove('hidden');
-  $('correcaoTitulo').textContent = 'Questão ' + String(n).padStart(2, '0');
+  $('correcaoTitulo').textContent = 'Questão ' + rotuloQ(n);
   const certa = certasCorrecao[n - 1] ? ' · A certa é ' + certasCorrecao[n - 1] : '';
-  $('correcaoStatus').textContent = estado === 'certa' ? '✓ Você acertou (' + answers[n] + ')' :
+  $('correcaoStatus').textContent = estado === 'anulada' ? '⊘ Questão anulada: não conta na nota' : estado === 'certa' ? '✓ Você acertou (' + answers[n] + ')' :
     (estado === 'errada' ? '✗ Você marcou ' + answers[n] + certa : 'Ficou em branco' + certa);
   $('correcaoImg').classList.add('hidden');
   $('correcaoCarregando').classList.remove('hidden');
@@ -379,6 +383,7 @@ function abrirSimulado(id) {
   google.script.run
     .withSuccessHandler(dados => {
       total = dados.total;
+      primeira = dados.primeira || 1;
       questions = [];
       for (let i = 1; i <= total; i++) {
         // 4 = A-D, 5 = A-E (simulados antigos não têm essa informação: A-E)

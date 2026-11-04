@@ -8,7 +8,7 @@ Python precisa ir junto, embutido num .html. Guardamos o código em base64
 atrapalhe o HTML.
 
 Rode sempre que mudar o extrair_questoes.py:
-    uv run src/escola/gerar_apps_script.py
+    uv run src/pdf_para_simulado/gerar_apps_script.py
 """
 
 import base64
@@ -24,7 +24,7 @@ def main():
     compile(codigo, str(ORIGEM), "exec")   # garante que o Python não tem erro de sintaxe
     b64 = base64.b64encode(codigo).decode("ascii")
     DESTINO.write_text(
-        "<!-- GERADO AUTOMATICAMENTE por src/escola/gerar_apps_script.py. Não edite à mão. -->\n"
+        "<!-- GERADO AUTOMATICAMENTE por src/pdf_para_simulado/gerar_apps_script.py. Não edite à mão. -->\n"
         f"<script>const EXTRATOR_PY_B64 = \"{b64}\";</script>\n",
         encoding="utf-8",
     )

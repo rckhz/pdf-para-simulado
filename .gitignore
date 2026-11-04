@@ -16,3 +16,6 @@ saida/
 # Provas e gabaritos: conteúdo de terceiros (não publicar)
 *.pdf
 simulado_extraido/
+
+# Ferramentas e provas de teste do desenvolvedor (local, nunca vai para o GitHub)
+dev_local/
