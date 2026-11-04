@@ -230,6 +230,22 @@ def chave_rodape(texto):
     return re.sub(r"[\d\s]+", "", texto)
 
 
+_leituras = {"doc": None, "paginas": {}}
+
+
+def texto_dict(pagina):
+    """O mesmo que pagina.get_text("dict"), mas cada página é lida UMA vez só.
+    Essa leitura é a parte mais lenta do programa e era repetida várias vezes por página
+    (rodapé, cabeçalho, línguas e cada modo de achar questões). O PDF original nunca é
+    alterado, então guardar a leitura não muda o resultado."""
+    if _leituras["doc"] is not pagina.parent:
+        _leituras["doc"] = pagina.parent
+        _leituras["paginas"] = {}
+    if pagina.number not in _leituras["paginas"]:
+        _leituras["paginas"][pagina.number] = pagina.get_text("dict")
+    return _leituras["paginas"][pagina.number]
+
+
 def textos_de_rodape(doc):
     """Textos que se repetem no pé de várias páginas (nome da prova, número da página):
     são rodapé, mesmo quando ficam um pouco acima dos últimos 5% da página."""
@@ -237,7 +253,7 @@ def textos_de_rodape(doc):
     for pagina in doc:
         altura = pagina.rect.height
         vistos = set()
-        for bloco in pagina.get_text("dict")["blocks"]:
+        for bloco in texto_dict(pagina)["blocks"]:
             for linha in bloco.get("lines", []):
                 texto = "".join(sp["text"] for sp in linha["spans"]).strip()
                 if texto and linha["bbox"][1] > altura * 0.88:
@@ -254,7 +270,7 @@ def textos_de_rodape(doc):
     alturas = {}
     for pagina in doc:
         vistas = set()
-        for bloco in pagina.get_text("dict")["blocks"]:
+        for bloco in texto_dict(pagina)["blocks"]:
             for linha in bloco.get("lines", []):
                 texto = "".join(sp["text"] for sp in linha["spans"]).strip()
                 if (texto and len(texto) <= 15 and linha["bbox"][1] > pagina.rect.height * 0.88
@@ -288,7 +304,7 @@ def textos_de_cabecalho(doc):
     for pagina in doc:
         altura = pagina.rect.height
         vistos = set()
-        for bloco in pagina.get_text("dict")["blocks"]:
+        for bloco in texto_dict(pagina)["blocks"]:
             for linha in bloco.get("lines", []):
                 texto = "".join(sp["text"] for sp in linha["spans"]).strip()
                 if texto and linha["bbox"][3] < altura * 0.12:
@@ -303,7 +319,7 @@ def textos_de_cabecalho(doc):
     iguais = {}
     for pagina in doc:
         vistos = set()
-        for bloco in pagina.get_text("dict")["blocks"]:
+        for bloco in texto_dict(pagina)["blocks"]:
             for linha in bloco.get("lines", []):
                 texto = "".join(sp["text"] for sp in linha["spans"]).strip()
                 if (re.fullmatch(r"[A-Z]{2,}\d{3,}", texto)
@@ -316,7 +332,7 @@ def textos_de_cabecalho(doc):
     lugares = {}
     for pagina in doc:
         vistos = set()
-        for bloco in pagina.get_text("dict")["blocks"]:
+        for bloco in texto_dict(pagina)["blocks"]:
             for linha in bloco.get("lines", []):
                 texto = "".join(sp["text"] for sp in linha["spans"]).strip()
                 x0, y0, x1, y1 = linha["bbox"]
@@ -436,7 +452,7 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
     # --- Texto ---
     # get_text("dict") devolve blocos -> linhas -> "spans" (trechos com a mesma fonte).
     blocos_texto = []   # linhas "normais" de cada bloco, para procurar instruções no fim
-    blocos = pagina.get_text("dict")["blocks"]
+    blocos = texto_dict(pagina)["blocks"]
     # Capa com as instruções da prova ("INSTRUÇÕES PARA A REALIZAÇÃO DA PROVA" / "1. Você
     # recebeu..."): os itens numerados dela não são questões.
     capa = modo == "numero" and any(
@@ -982,7 +998,10 @@ def montar_questoes(doc):
         # o nome da língua sozinho numa linha do alto da folha, como título ("ALEMÃO", UFPR;
         # "Linguagens  Espanhol", UERJ); uma questão que cita "alemão" no texto não conta
         m_l = None
-        for linha_t in pg.get_text("text", clip=pymupdf.Rect(0, 0, pg.rect.width, pg.rect.height * 0.08)).splitlines():
+        # (linha por linha: o texto recortado da faixa pode colar letras de baixo, "Francêsfi")
+        linhas_topo = ["".join(sp["text"] for sp in l["spans"]) for b in texto_dict(pg)["blocks"]
+                       for l in b.get("lines", []) if l["bbox"][3] < pg.rect.height * 0.08]
+        for linha_t in linhas_topo:
             m_l = m_l or re.fullmatch(r"\s*(?:linguagens\s+)?(espanhol|ingl[êe]s|franc[êe]s|alem[ãa]o|italiano)\s*",
                                       linha_t, re.I)
         linguas.append(m_l.group(1).lower() if m_l else None)
@@ -1155,6 +1174,19 @@ def montar_questoes(doc):
                     # ao lado do "05" enorme começa 1 ponto acima dele e é da questão 5)
                     continua = any(o is not it and o.tipo == "texto" and abs(o.rect.x0 - it.rect.x0) < 3
                                    and -4 < o.rect.y0 - it.rect.y1 < 3 for o in dados["itens"])
+                    # (nem um pedaço alto da 1ª linha da questão, ex.: UERJ, a fração "(1/8)" no fim de
+                    # "Observe os gráficos... g(x) = (1/8)^x-1": fica na altura dessa linha)
+                    # (nem um título sozinho no alto da folha, sem nada logo acima dele: ex.: UERJ,
+                    # "NÍVEL DE SATISFAÇÃO..." ao lado de "Questão 47" é da 47, não da 46 da folha anterior)
+                    continua = continua or not any(
+                        o is not it and o.rect.y0 < it.rect.y0 - 1 and it.rect.y0 - o.rect.y1 < 30
+                        and min(o.rect.x1, it.rect.x1) - max(o.rect.x0, it.rect.x0) > 0
+                        for o in dados["itens"])
+                    continua = continua or any(
+                        o is not it and o.tipo == "texto" and o.rect.x0 >= b.rect.x1 - 2
+                        and b.rect.y0 - 3 <= o.rect.y0 <= b.rect.y0 + 10 and o.rect.x1 < it.rect.x0 + 5
+                        and min(o.rect.y1, it.rect.y1) - max(o.rect.y0, it.rect.y0) > 0.5 * o.rect.height
+                        for o in dados["itens"])
                     if not modelo_numero and not continua and it.rect.y0 < b.rect.y0 - 0.5 and it.rect.x0 >= b.rect.x1 + 20                             and b.rect.y0 <= it.centro_y() < b.rect.y1:
                         it.ancora_y = b.rect.y0 - 0.5
                     # Modelo "numero": fórmula alta NA linha da questão ("23. Calcule ... E = 12(⅓+⅚)"),
@@ -1764,7 +1796,7 @@ def titulo_da_prova(doc):
     pulando títulos genéricos como "CADERNO DE QUESTÕES". Se a capa disser o semestre
     ("2º semestre 2026") e o título não, ele é acrescentado."""
     linhas = []
-    for bloco in doc[0].get_text("dict")["blocks"]:
+    for bloco in texto_dict(doc[0])["blocks"]:
         for linha in bloco.get("lines", []):
             texto = " ".join("".join(s["text"] for s in linha["spans"]).split())
             tamanho = max((s["size"] for s in linha["spans"] if s["text"].strip()), default=0)
@@ -1955,6 +1987,7 @@ def extrair_em_etapas(pdf, nome_pdf="prova.pdf"):
     resultado["relatorio"] = texto_relatorio(nome_pdf, resultado)
     for item in lista:
         del item["_q"]
+    _leituras["doc"], _leituras["paginas"] = None, {}   # libera a memória das leituras
     yield ("fim", resultado)
 
 
