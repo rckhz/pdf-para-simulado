@@ -796,6 +796,8 @@ function interpretarGabarito(texto, total) {
   t = t
     // letra minúscula colada ao número ("1-a", "02) b") vira maiúscula
     .replace(/(\d{1,3}\s*[-–—.:)=]\s*)\(?([a-e])\)?(?![a-zà-ÿ])/g, (m, antes, l) => antes + l.toUpperCase())
+    // "Q1 (c); Q2 (a)" (OBF): letra minúscula entre parênteses logo depois do número
+    .replace(/(\d{1,3}[ \t]*)\(([a-e])\)/g, (m, antes, l) => antes + l.toUpperCase())
     // números que NÃO são respostas: "questões 01 a 18", "48 QUESTÕES", "página 1/16"
     // (na mesma linha e com "a"/"e" minúsculos: "QUESTÕES↵01 A 02" é gabarito, não intervalo)
     .replace(/[Qq][Uu][Ee][Ss][Tt](?:[ÕõOo][Ee][Ss]|[ÃãAa][Oo])[ \t]*(?:de[ \t]*)?\d{1,3}[ \t]*(?:a|e|até|ate|-|–)[ \t]*\d{1,3}/g, ' ')
@@ -828,8 +830,13 @@ function interpretarGabarito(texto, total) {
 
   const conjuntos = [];
   let atual = null, pendentes = [], serie = '', dia = '', quebra = false, fimUltimaLetra = 0;
+  // "Prova de Nível Jr:", "Nível II" (OBF): o nível escrito antes de cada gabarito dá o nome dele
+  const niveis = [...t.matchAll(/n[íi]vel\s+(jr|j[úu]nior|[IVX]{1,4}|\d|[A-E])(?![A-Za-zÀ-ÿ\d])/gi)]
+    .map(x => ({ pos: x.index, rotulo: 'Nível ' + (/^j/i.test(x[1]) ? 'Jr' : x[1].toUpperCase()) }));
   const novoConjunto = () => {
-    atual = { serie: serie, dia: dia, respostas: {}, inicio: fimUltimaLetra };
+    const inicio = conjuntos.length ? fimUltimaLetra : 0;
+    const nivel = niveis.filter(nv => nv.pos >= inicio && nv.pos < re.lastIndex).pop();
+    atual = { serie: serie, dia: dia, respostas: {}, inicio: fimUltimaLetra, nivel: nivel ? nivel.rotulo : '' };
     conjuntos.push(atual);
     pendentes = [];
     quebra = false;
@@ -895,7 +902,7 @@ function interpretarGabarito(texto, total) {
     const prox = conjuntos[conjuntos.indexOf(c) + 1];
     c.texto = t.slice(c.inicio, prox ? prox.inicio : t.length);
     c.quantidade = Object.keys(c.respostas).length;
-    c.rotulo = [c.serie, c.dia].filter(Boolean).join(' · ') || (validos.length > 1 ? 'Gabarito ' + (i + 1) : 'Gabarito');
+    c.rotulo = [c.serie, c.dia, c.nivel].filter(Boolean).join(' · ') || (validos.length > 1 ? 'Gabarito ' + (i + 1) : 'Gabarito');
   });
   // Se há um título para cada gabarito, o nome vem da ORDEM dos títulos (funciona mesmo
   // quando o OCR leu todos os títulos antes das tabelas). O texto de cada título (com as

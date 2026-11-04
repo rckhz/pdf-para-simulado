@@ -241,7 +241,7 @@ Cada questão tem botões A–E (só as letras que existem) e **"Anular questão
 
 | Onde | O que |
 |---|---|
-| `dev_local/testes/teste_interpretar.js` | 32 testes do leitor de gabarito (OCR real SARESP, Vestibulinho, Fatec, planilhas, Paraná, ENEM D2...) |
+| `dev_local/testes/teste_interpretar.js` | ~40 testes do leitor de gabarito (OCR real SARESP, Vestibulinho, Fatec, planilhas, Paraná, ENEM D2, ONC, OBF, UEL...) |
 | `dev_local/testes/fuvest2027/teste_fuvest.js` | Gabarito Fuvest 2027 (V1–V4 lado a lado, 3 layouts) |
 | `dev_local/testes/gerar_interpretar.js` | **Rode antes dos testes** se mudou o `Professor.html`: recria `interpretar.js` a partir dele |
 | `dev_local/testes/comparar_img.py` | Regressão de imagens: compara extrator antigo × atual em vários PDFs |
@@ -307,6 +307,21 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     2º EQ virava 70 questões fora de ordem a partir da 23; agora são 60;
   - `texto_dict`: cada página é lida uma vez só (UERJ 28,9 s → 12,7 s; Fatec 8,8 s → 5,9 s),
     imagens idênticas nas 46 provas de teste.
+- **v7 (2026-11-04): UFRGS, UEL, OBF, OBQ (`dev_local/provas/novos3/`)**
+  - modo `numero`: "Questão 1." com ponto (OBF/OBQ, junto do `m_oba`); número SOZINHO na linha em
+    negrito com o enunciado logo embaixo e alinhado (UEL);
+  - modo `numero` também usa a linha vertical alta do meio como divisa de colunas (UFRGS/OBQ),
+    exceto se algum texto atravessa a linha (questão de largura inteira; cabeçalho no topo não conta);
+  - instrução "As questões de 01 a 08 estão relacionadas ao texto abaixo" (`referencia`); o
+    número de linhas de um bloco conta linhas VISUAIS (`linhas_visuais`: pedaços justificados);
+  - cabeçalho curto idêntico no mesmo lugar em ≥60% das folhas ("OBQ 2025", "A") = cabeçalho;
+  - `titulo_falso`: última linha de parágrafo ("…Tibagy" + "LTDA.") não é título de matéria;
+  - pedaço de questão que é só um fio fino (<15 de altura) é descartado (`finalizar_trechos`);
+  - `PADRAO_DISCURSIVAS` ("Parte II – Questões Analítico-Expositivas"): barreira `fim` com
+    texto "discursivas: …"; as questões depois dela saem do simulado (com aviso);
+  - erros claros: prova de SOMATÓRIA (UEM/UFSC: "04)" e "08)" sem "03)") e PDF escaneado;
+  - gabarito: "Q1 (c); Q2 (a)" e um conjunto por "Nível Jr/I/II/III" (OBF, `niveis`).
+  - Lista completa para regressão: `dev_local/testes/lista_provas.txt` (54 provas).
 - Opção recusada para anuladas: "mostrar a nota com gabarito incompleto". Motivo: uma questão
   esquecida viraria "anulada" sem o professor perceber.
 

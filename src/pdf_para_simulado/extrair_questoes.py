@@ -195,6 +195,16 @@ PADRAO_LEIA_ABAIXO = re.compile(
     r"fragmentos?|trechos?|gr[áa]ficos?|infogr[áa]ficos?)\s+(abaixo|a\s+seguir)\s*[.:]?\s*$", re.IGNORECASE)
 
 
+def linhas_visuais(linhas):
+    """Quantas linhas de verdade há num bloco: pedaços na mesma altura contam como uma linha
+    (texto justificado pode vir em pedaços, ex.: UFRGS, "Instrução: As" + "questões" + "01"...)."""
+    alturas = []
+    for r, _ in linhas:
+        if not any(abs(r.y0 - y) < 3 for y in alturas):
+            alturas.append(r.y0)
+    return len(alturas)
+
+
 def e_instrucao(texto, num_linhas):
     """Frase curta do tipo "Leia o texto para responder à questão 05."."""
     if num_linhas == 1 and PADRAO_LEIA_ABAIXO.match(texto):
@@ -209,8 +219,11 @@ def e_instrucao(texto, num_linhas):
     para_responder = re.search(r"\bpara\s+responder\s+(?:[àa]s?\s+)?quest", texto, re.IGNORECASE)
     # "O texto a seguir é referência para as questões 10 a 18." (UFPR) /
     # "AS QUESTÕES 09 A 22 REFEREM-SE ÀS CRÔNICAS..." (UERJ)
+    # "Instrução: As questões de 01 a 08 estão relacionadas ao texto abaixo." (UFRGS)
     referencia = re.search(r"refer[êe]ncia\s+(?:para|[àa]s?)\s+(?:as\s+)?quest|"
-                           r"quest[õo]es\s+\d{1,3}\s+(?:a|at[ée])\s+\d{1,3}\s+refere", texto, re.IGNORECASE)
+                           r"quest[õo]es\s+(?:de\s+)?\d{1,3}\s+(?:a|at[ée]|e)\s+\d{1,3}\s+"
+                           r"(?:refere|est[ãa]o\s+relacionad|relacionam|baseiam|dizem\s+respeito)",
+                           texto, re.IGNORECASE)
     return (num_linhas <= 3 and len(texto) < 220
             and (PADRAO_INICIO_INSTRUCAO.search(texto) is not None
                  or (para_responder or referencia) and m and m.group(1))
@@ -221,6 +234,11 @@ def e_instrucao(texto, num_linhas):
 PADRAO_ROTULO = re.compile(r"^quest[ãa]o\s*(\d{1,3})\s*$", re.IGNORECASE)
 # Fim das questões (ex.: Fatec, depois da questão 60 vem a redação).
 PADRAO_FIM = re.compile(r"\s*(produ[çc][ãa]o\s+de\s+texto|proposta\s+de\s+reda[çc][ãa]o|reda[çc][ãa]o|rascunho(\s+da\s+reda[çc][ãa]o)?)\s*", re.IGNORECASE)
+# Começo da parte DISCURSIVA (ex.: OBQ, "Parte II – Questões Analítico-Expositivas"): as questões
+# dali em diante são para responder por escrito; o simulado fica só com as de alternativa.
+PADRAO_DISCURSIVAS = re.compile(
+    r"\s*(?:parte\s+(?:[IVX]{1,4}|\d)\s*[-–—:]?\s*)?(?:quest[õo]es\s+)?(?:anal[íi]tico[-\s]*expositivas|"
+    r"discursivas|dissertativas|abertas)\s*|\s*parte\s+(?:discursiva|dissertativa)\s*", re.IGNORECASE)
 # Páginas que são só a folha/cartão de respostas, sem questões (ex.: última página).
 PADRAO_FOLHA_RESPOSTAS = re.compile(r"folha\s+de\s+respostas|cart[ãa]o[\s-]+resposta", re.IGNORECASE)
 
@@ -348,8 +366,24 @@ def textos_de_cabecalho(doc):
     # posições vizinhas contam juntas (a mesma linha pode variar 1 ponto de uma folha para outra)
     vizinhos = lambda k: [("pos", k[1] + dx, k[2] + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]
     lugares = {k: sum(lugares.get(v, 0) for v in vizinhos(k)) for k in lugares}
+    # Texto curto IGUALZINHO e no MESMO LUGAR no alto de quase todas as folhas, mesmo com poucas
+    # letras (ex.: OBQ, "OBQ 2025" e o "A" de "Modalidade A" embaixo do título).
+    identicos = {}
+    for pagina in doc:
+        vistos = set()
+        for bloco in texto_dict(pagina)["blocks"]:
+            for linha in bloco.get("lines", []):
+                texto = "".join(sp["text"] for sp in linha["spans"]).strip()
+                x0, y0, x1, y1 = linha["bbox"]
+                if (texto and len(texto) <= 20 and y1 < pagina.rect.height * 0.1
+                        and not re.match(r"^\s*(quest|\{|\()", texto, re.IGNORECASE)):
+                    vistos.add((texto, round(x0 / 4), round(y0 / 3)))
+        for k in vistos:
+            identicos[k] = identicos.get(k, 0) + 1
+    muitas = max(3, len(doc) * 0.6)
     return chaves | {chave_rodape(t) for t, n in iguais.items() if n >= minimo} | {
-        k for k, n in lugares.items() if n >= minimo}
+        k for k, n in lugares.items() if n >= minimo} | {
+        chave_rodape(k[0]) for k, n in identicos.items() if n >= muitas and chave_rodape(k[0])}
 
 
 def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset(), sem_negrito=False):
@@ -535,6 +569,11 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
             return True
         if so_mesma_linha:
             return False
+        # Última linha de um parágrafo (ex.: UEL, "...Companhia Colonizadora do Tibagy" + "LTDA."):
+        # começa onde começa a linha de cima, colada nela, e a de cima é bem mais comprida.
+        if any(o != r and abs(o.x0 - r.x0) < 3 and 0 <= r.y0 - o.y1 < 0.6 * r.height
+               and o.width > 2 * r.width for o in retangulos_linhas):
+            return True
         # Figura ao lado, na mesma altura (ex.: OBA, legenda ao lado do desenho do globo).
         # Uma faixa atrás do título (que contém o texto) não conta.
         figuras = [pymupdf.Rect(i["bbox"]) for i in pagina.get_image_info()] + [
@@ -604,6 +643,10 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                 rect_fim = rect_linha if modo == "rotulo" else juntar_desenhos_que_tocam(rect_linha, desenhos)
                 barreiras.append(Barreira(tipo, rect_fim, texto=texto_linha))
                 continue
+            if modo in ("rotulo", "numero") and PADRAO_DISCURSIVAS.fullmatch(texto_linha) and (
+                    primeiro["flags"] & 16 or re.search(r"bold|black|heavy", primeiro["font"], re.I)):
+                barreiras.append(Barreira("fim", rect_linha, texto="discursivas: " + texto_linha))
+                continue
 
             # Modelo "6. Considere...": a linha começa com o número da questão em negrito.
             if modo == "numero":
@@ -628,9 +671,27 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                     m, negrito = m_chave, True
                 # OBA: "Questão 2) (1 ponto) Os astrônomos..." marca a questão; a linha
                 # "2) - Nota obtida: ____" é para o corretor e não aparece na imagem.
-                m_oba = re.match(r"^quest[ãa]o\s+(\d{1,3})\s*\)", texto_linha, re.IGNORECASE)
+                # (também "Questão 1. Suponha..." / "Questão 2." com ponto, ex.: OBF, OBQ)
+                m_oba = re.match(r"^quest[ãa]o\s+(\d{1,3})\s*(?:\)|\.(?!\d))", texto_linha, re.IGNORECASE)
                 if m_oba and negrito:
                     m = m_oba
+                # Número SOZINHO na linha, com o enunciado começando logo embaixo, alinhado
+                # com ele (ex.: UEL, "1" e, na linha de baixo, "O girassol apresenta...").
+                # (não vale coluna de números, como a numeração das linhas de um texto)
+                if (not m and negrito and re.fullmatch(r"\d{1,3}", texto_linha)
+                        and primeiro["size"] >= tamanho_texto * 0.95):
+                    altura_l = rect_linha.height
+                    for b2 in blocos:
+                        for l2 in b2.get("lines", []):
+                            t2 = "".join(sp["text"] for sp in l2["spans"]).strip()
+                            r2 = pymupdf.Rect(l2["bbox"])
+                            if (t2 and not re.fullmatch(r"[\d\s.,]+", t2) and abs(r2.x0 - rect_linha.x0) < 4
+                                    and 0 <= r2.y0 - rect_linha.y1 < altura_l * 0.8
+                                    and len(re.findall(r"[A-Za-zÀ-ÿ]", t2)) >= 3):
+                                m = re.fullmatch(r"(\d{1,3})", texto_linha)
+                                break
+                        if m:
+                            break
                 if re.match(r"^\d{1,3}\)\s*-\s*nota\s+obtida", texto_linha, re.IGNORECASE):
                     escondidos.append(rect_linha)
                     continue
@@ -810,11 +871,11 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
             # o próximo bloco começa logo abaixo (ou encosta) e não é, sozinho, uma instrução
             # (ex.: Cotuca, "e) ...jovens." colada em "Leia o texto ... questões 10 e 11.")
             if (-6 < prox[0][0].y0 - linhas[-1][0].y1 < 8
-                    and not e_instrucao(" ".join(t for _, t in prox), len(prox))):
+                    and not e_instrucao(" ".join(t for _, t in prox), linhas_visuais(prox))):
                 candidatos.append(linhas + prox)
         for k, junto in enumerate(candidatos):
             texto_bloco = " ".join(t for _, t in junto)
-            if e_instrucao(texto_bloco, len(junto)):
+            if e_instrucao(texto_bloco, linhas_visuais(junto)):
                 rect = pymupdf.Rect(junto[0][0])
                 for r, _ in junto[1:]:
                     rect |= r
@@ -991,6 +1052,22 @@ def montar_questoes(doc):
                 break
         paginas = melhor[1]
     questoes, apoios, blocos_soltos, avisos_gerais = [], [], [], []
+    # Parte discursiva: as questões depois do título dela ficam fora do simulado (de vez; a redação
+    # do ENEM, no meio do caderno, é diferente: lá as questões objetivas continuam depois).
+    inicio_discursivas = None
+    for num_pag, dados in enumerate(paginas):
+        if inicio_discursivas is None:
+            fim_d = next((b for b in sorted(dados["barreiras"], key=lambda b: b.rect.y0)
+                          if b.tipo == "fim" and (b.texto or "").startswith("discursivas: ")), None)
+            if fim_d:
+                inicio_discursivas = (num_pag, fim_d.rect.y0)
+        if inicio_discursivas is not None:
+            fora = [b for b in dados["barreiras"] if b.tipo == "selo"
+                    and (num_pag > inicio_discursivas[0] or b.rect.y0 > inicio_discursivas[1])]
+            if fora:
+                avisos_gerais.append(f"Página {num_pag + 1}: questões discursivas "
+                                     f"{', '.join(str(b.numero) for b in fora)} ficaram fora do simulado.")
+            dados["barreiras"] = [b for b in dados["barreiras"] if b not in fora]
     # Página de uma língua estrangeira (ex.: UERJ, "Linguagens  Espanhol" no alto da folha):
     # as questões dessa parte se repetem em cada língua; vale só a primeira versão.
     linguas = []
@@ -1203,7 +1280,18 @@ def montar_questoes(doc):
         # alternativas também são linhas altas, mas não separam colunas)
         divisoria_alta = [d for d in dados["divisorias"] if d.height > doc[num_pag].rect.height * 0.5
                           and abs((d.x0 + d.x1) / 2 - largura / 2) < largura * 0.06]
-        duas_colunas = not uma_coluna or (bool(divisoria_alta) and not modelo_numero)
+        # (no modelo "6. Considere..." também, ex.: UFRGS, OBQ: o texto do pé da coluna esquerda
+        # continua do lado da questão que começa na direita, e não há vão limpo entre as colunas)
+        # (mas não se algum texto atravessa a linha: ex.: UFRGS, questão de largura inteira no alto
+        # da folha e as duas colunas só embaixo dela)
+        if modelo_numero and divisoria_alta:
+            m_div = (divisoria_alta[0].x0 + divisoria_alta[0].x1) / 2
+            # (o cabeçalho no alto da folha, acima da linha, não conta: ex.: OBQ, "OBQ 2025")
+            if any(it.tipo == "texto" and it.rect.x0 < m_div - 5 and it.rect.x1 > m_div + 5
+                   and not (it.rect.y1 <= divisoria_alta[0].y0 and it.rect.y1 < doc[num_pag].rect.height * 0.1)
+                   for it in dados["itens"]):
+                divisoria_alta = []
+        duas_colunas = not uma_coluna or bool(divisoria_alta)
         if duas_colunas and uma_coluna:
             meio = (divisoria_alta[0].x0 + divisoria_alta[0].x1) / 2
         elif dados["vao_colunas"]:
@@ -1479,6 +1567,14 @@ def finalizar_trechos(doc, paginas, trechos, avisos):
     (de outra questão) invade o recorte."""
     finais = []
     for t in trechos:
+        # Pedaço que é só um fio solto (ex.: UFRGS, o fio no alto da folha seguinte, que deixava
+        # a imagem da questão com a largura da folha inteira e metade em branco): fica de fora.
+        if t.itens and all(it.tipo == "desenho" and min(it.rect.width, it.rect.height) < 3 for it in t.itens):
+            fios = pymupdf.Rect(t.itens[0].rect)
+            for it in t.itens[1:]:
+                fios |= it.rect
+            if fios.height < 15 and len(trechos) > 1:
+                continue
         largura = doc[t.pagina].rect.width
         meio = largura / 2
         # Com uma linha divisória de verdade no meio da folha, um desenho que passa um pouco
@@ -1890,6 +1986,21 @@ def extrair_em_etapas(pdf, nome_pdf="prova.pdf"):
         doc = pymupdf.open(pdf)
 
     yield ("progresso", 0, 1, f"Lendo as {len(doc)} páginas da prova")
+    # Formatos que o simulado não aceita: avisa o motivo em vez de "não encontrei nenhuma questão".
+    linhas_doc = [l.strip() for p in doc for l in p.get_text().splitlines()]
+    if sum(len(l) for l in linhas_doc) < 50 * len(doc):
+        yield ("fim", {"ok": False, "erro": "Este PDF parece ser escaneado (as páginas são fotos, sem "
+                       "texto que dê para ler). Por enquanto só funcionam provas em PDF com texto: "
+                       "tente baixar a prova do site oficial.", "avisos_gerais": []})
+        return
+    # Somatória (UEM, UFSC): alternativas 01, 02, 04, 08, 16 e a resposta é a soma das certas.
+    # (numeração comum teria "03)"; a somatória pula do 02 para o 04)
+    conta = lambda n: sum(1 for l in linhas_doc if re.match(rf"^{n}\)\s*\S", l))
+    if conta("04") >= 5 and conta("08") >= 5 and conta("03") == 0:
+        yield ("fim", {"ok": False, "erro": "Esta prova é de SOMATÓRIA (alternativas 01, 02, 04, 08, 16 "
+                       "e a resposta é a soma das certas). O simulado só aceita questões com uma "
+                       "letra certa (A a E).", "avisos_gerais": []})
+        return
     questoes, apoios, avisos_gerais = montar_questoes(doc)
     # Rótulo de questão sem nada embaixo (ex.: um "Questão 14" repetido, escondido na
     # página): não vira questão; só avisa.
