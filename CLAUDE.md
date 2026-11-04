@@ -131,6 +131,11 @@ avisos_gerais, num_apoios, primeira, relatorio`.
    ser uma melhoria intencional. Mudanças "pequenas" costumam quebrar outra prova.
 3. Cuidado com `\uXXXX` e caracteres invisíveis ao editar (já aconteceu de virar caractere
    real e quebrar regex).
+4. **Leia o texto da página sempre com `texto_dict(pagina)`**, nunca `pagina.get_text("dict")`
+   direto: essa leitura é a parte mais lenta e ficava repetida 4 a 9 vezes por página
+   (rodapé, cabeçalho, línguas, cada modo). `texto_dict` guarda a leitura de cada página do
+   documento atual. Meça o tempo ao acrescentar passadas pela prova inteira (no navegador,
+   pelo Pyodide, tudo fica de 3 a 5 vezes mais lento).
 
 ---
 
@@ -294,11 +299,26 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     ("PRÓTONS | ELÉTRONS", Etec 2024) não é título (`titulo_falso` também no modo `rotulo`);
   - leitor de gabarito: avisa "parece ser a prova" quando o arquivo tem alternativas com texto
     e nenhuma resposta (`pareceProva`).
+- **v6 (2026-11-04): UERJ 2º EQ e velocidade**
+  - língua da folha lida linha por linha (`linhas_topo`; o recorte colava "Francêsfi") ou de um
+    título "ESPANHOL" (dicionário `lingua`, `outra_lingua()`): só a 1ª língua fica. A UERJ 2025
+    2º EQ virava 70 questões fora de ordem a partir da 23; agora são 60;
+  - `texto_dict`: cada página é lida uma vez só (UERJ 28,9 s → 12,7 s; Fatec 8,8 s → 5,9 s),
+    imagens idênticas nas 46 provas de teste.
 - Opção recusada para anuladas: "mostrar a nota com gabarito incompleto". Motivo: uma questão
   esquecida viraria "anulada" sem o professor perceber.
 
 ## 10. Ideias / pendências conhecidas
 
-- PDFs escaneados (sem texto) não funcionam. Possível caminho: OCR do Drive página a página.
+- **A página do professor congela** com prova grande (o Pyodide roda na mesma "linha" da
+  página). Solução proposta: rodar a extração num Web Worker. Ainda não feito.
+- **Revisão manual antes de enviar** (ver cada questão, excluir, juntar com a seguinte): é a
+  ideia mais útil do plano de melhorias do dono. Tem que ser ANTES do envio, porque o PDF só
+  existe no navegador durante a extração.
+- O dono escreveu um plano de melhorias (ranking, histórico de tentativas, OCR, módulos). Ranking
+  e histórico exigem identificar o aluno, o que contradiz "sem login de aluno": pergunte antes.
+- PDFs escaneados (sem texto) não funcionam. O OCR do Drive devolve só texto, sem posição (não
+  serve para recortar). Tesseract/PaddleOCR não rodam no Pyodide; o caminho viável é o
+  Tesseract.js no navegador (devolve a posição de cada palavra).
 - Toda prova nova costuma revelar um formato diferente: teste a prova, compare as imagens com
   todas as outras provas e só então publique.
