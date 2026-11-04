@@ -603,6 +603,14 @@ async function lerArquivoGabarito(arquivo, status, rotulo) {
 
 function aplicarGabaritoLido(r, lido, status) {
   status.innerHTML = '';
+  if (r.pareceProva) {
+    const caixa = criar('div', 'erro-box', '');
+    caixa.append(criar('b', '', 'Esse arquivo parece ser a prova, não o gabarito.'),
+      criar('div', '', 'Ele tem as perguntas e as alternativas, mas não diz qual é a certa. ' +
+        'Envie o arquivo do gabarito (a folha com as respostas) ou marque as letras abaixo.'));
+    status.append(caixa, detalhesLidos(lido, null));
+    return;
+  }
   if (!r.conjuntos.length) {
     const caixa = criar('div', 'erro-box', 'Não encontrei respostas nesse arquivo. Se for foto, confira se está ' +
       'nítida e mostra os números das questões e as letras. Você também pode marcar as letras abaixo.');
@@ -743,6 +751,39 @@ async function prepararParaEnvio(arquivo) {
  */
 function interpretarGabarito(texto, total) {
   let t = String(texto || '');
+  // Folha de soluções (ex.: OBMEP, "QUESTÃO 1 – ALTERNATIVA A" seguida da explicação):
+  // só essas linhas importam; o texto das soluções tem letras e números soltos que confundiriam.
+  const resolvidas = {};
+  for (const m of t.matchAll(/quest[ãa]o\s*(\d{1,3})\s*[-–—:]\s*(?:alternativa|resposta)\s*\(?([A-E])\)?/gi)) {
+    resolvidas[Number(m[1])] = m[2].toUpperCase();
+  }
+  // Tabelas com o código da questão (ex.: ONC, "NÍVEL A: 9º ANO" + "A1 A2 ... A15" + "C D D ... B"):
+  // um gabarito por nível. "NULA" = anulada; "AouB" (duas certas) fica com a 1ª letra.
+  const porCodigo = gabaritosPorCodigo(t);
+  if (porCodigo) return { conjuntos: porCodigo };
+  // Prova com a alternativa certa marcada (ex.: OBA, "Questão 2) ..." e depois "e) ( X ) Encélado").
+  if (Object.keys(resolvidas).length < 3) {
+    const partes = t.split(/quest[ãa]o\s*(\d{1,3})\s*\)/i);
+    for (let i = 1; i < partes.length; i += 2) {
+      const marcada = partes[i + 1].match(/(?:^|\n)\s*([a-eA-E])\s*\)\s*\(\s*[xX]\s*\)/);
+      if (marcada) resolvidas[Number(partes[i])] = marcada[1].toUpperCase();
+    }
+    if (Object.keys(resolvidas).length >= Math.max(3, total * 0.3)) {
+      return { conjuntos: [{ rotulo: 'Gabarito', respostas: resolvidas, quantidade: Object.keys(resolvidas).length,
+                             texto: t, anuladas: [] }] };
+    }
+  }
+  // A própria prova enviada por engano (ex.: ONC, a prova termina numa folha "GABARITO" em
+  // branco): muitas linhas "B) 3,6 m/s" com o texto da alternativa. Um gabarito não tem isso;
+  // ler as letras daí seria inventar respostas.
+  const alternativasComTexto = (t.match(/^[ \t]*\(?[A-Ea-e]\)[ \t]*[^\s()X][^\n]{2,}/gm) || []).length;
+  if (Object.keys(resolvidas).length < 3 && alternativasComTexto >= Math.max(8, total * 0.4)) {
+    return { conjuntos: [], pareceProva: true };
+  }
+  if (Object.keys(resolvidas).length >= Math.max(3, total * 0.6)) {
+    return { conjuntos: [{ rotulo: 'Gabarito', respostas: resolvidas, quantidade: Object.keys(resolvidas).length,
+                           texto: t, anuladas: [] }] };
+  }
   // "Gabarito de correspondência" (Fuvest): tabela que liga as versões da prova, não é gabarito.
   t = t.split(/gabarito\s+de\s+correspond[êe]ncia/i)[0];
   // Nomes das versões da prova ("PROVA V1", "Versão A", "Tipo 2"), na ordem em que aparecem.
@@ -935,6 +976,52 @@ function gabaritosLadoALado(t, total, versoes) {
  * Dá uma nota a cada conjunto para sugerir o desta prova: mesma quantidade
  * de questões, mesmas matérias e mesma série/ano do nome da prova.
  */
+/**
+ * Gabarito em tabela com o código de cada questão (ex.: ONC 2016): "A1 A2 ... A15" e, logo
+ * depois, as respostas na mesma ordem. Cada sequência de códigos com a mesma letra vira um
+ * gabarito, com o nome do "NÍVEL ..." escrito antes dela. Devolve null se não for esse formato.
+ */
+function gabaritosPorCodigo(t) {
+  const tokens = [];
+  const re = /\S+/g;
+  let m;
+  while ((m = re.exec(t))) tokens.push({ s: m[0], i: m.index });
+  const resposta = /^(?:[A-E]|NULA|ANULADA|ANULADO|[A-E]\s*ou\s*[A-E])$/i;
+  const conjuntos = [];
+  for (let k = 0; k < tokens.length; k++) {
+    const c = /^([A-E])1$/.exec(tokens[k].s);
+    if (!c) continue;
+    // códigos seguidos: A1, A2, A3...
+    let n = 1;
+    while (k + n < tokens.length && tokens[k + n].s === c[1] + (n + 1)) n++;
+    let resps;
+    if (n >= 5) {
+      resps = tokens.slice(k + n, k + 2 * n).map(x => x.s);
+    } else {
+      // célula por célula (leitura do Drive): "A1 C A2 D A3 D ..."
+      n = 0;
+      while (k + 2 * n + 1 < tokens.length && tokens[k + 2 * n].s === c[1] + (n + 1)
+             && resposta.test(tokens[k + 2 * n + 1].s)) n++;
+      if (n < 5) continue;
+      resps = Array.from({ length: n }, (x, j) => tokens[k + 2 * j + 1].s);
+    }
+    if (resps.length < n || !resps.every(r => resposta.test(r))) continue;
+    const respostas = {}, anuladas = [];
+    resps.forEach((r, j) => {
+      if (/^(nula|anulad[ao])$/i.test(r)) anuladas.push(j + 1);
+      else respostas[j + 1] = r[0].toUpperCase();
+    });
+    const antes = t.slice(0, tokens[k].i).split('\n').map(l => l.trim()).filter(Boolean);
+    const titulo = antes.reverse().find(l => /n[íi]vel\s+\w/i.test(l)) || ('Gabarito ' + c[1]);
+    const rotulo = titulo.replace(/\s+/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase())
+      .replace(/n[íi]vel ([a-z0-9]+)/i, (x, l) => 'Nível ' + l.toUpperCase());
+    conjuntos.push({ rotulo: rotulo, respostas: respostas, quantidade: n, anuladas: anuladas,
+                     texto: t.slice(tokens[k].i, tokens[Math.min(k + 2 * n, tokens.length - 1)].i) });
+    k += 2 * n - 1;
+  }
+  return conjuntos.length ? conjuntos : null;
+}
+
 function sugerirConjunto(conjuntos, total, materias, nomeProva) {
   const simples = s => String(s || '').toLowerCase().replace(/ª/g, 'a').replace(/[º°]/g, 'o')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
@@ -950,6 +1037,9 @@ function sugerirConjunto(conjuntos, total, materias, nomeProva) {
     // versão da prova ("Prova V1") no nome do simulado ("fuvest2027-fase1-V1")
     const versao = /^(?:prova|vers[ãa]o|tipo) (\w+)$/i.exec(c.rotulo);
     if (versao && new RegExp('(^|[^a-z0-9])' + simples(versao[1]) + '([^a-z0-9]|$)').test(nome)) p += 3;
+    // nível da olimpíada ("Nível D: 3º ano...") no nome do simulado ("ONC 2016 · Nível D")
+    const nivel = /n[íi]vel ([a-z0-9]+)/i.exec(c.rotulo);
+    if (nivel && new RegExp('nivel ?' + simples(nivel[1]) + '([^a-z0-9]|$)').test(nome)) p += 3;
     return p;
   });
   const ordem = conjuntos.map((c, i) => i).sort((a, b) => notas[b] - notas[a]);

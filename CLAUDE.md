@@ -260,6 +260,40 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     "90" de fração não some mais, OCR real com "CADERNO 7" no meio);
   - **questões anuladas** (botão "Anular questão"; nota sobre as válidas; aluno vê ⊘);
   - pacote renomeado de `escola` para `pdf_para_simulado`.
+- **v4 (2026-11-03): olimpíadas** (OBMEP, Canguru, ONC, OBA), todas no modo `numero`:
+  - capa com instruções E questões (OBMEP): número de questão vale se a fonte for bem maior
+    que a dos itens das instruções (`tamanho_capa`);
+  - fundo colorido da folha inteira é ignorado; número da folha ao lado do cabeçalho some;
+  - com linha divisória alta no meio, ela é a divisa das colunas (não o `vao_colunas`), e
+    desenho que passa um pouco dela é cortado na coluna;
+  - "título de matéria" falso: letra menor que o texto, alternativa "(C) RSS", texto com
+    outro texto/figura na mesma altura, legenda em cima de imagem pequena (`titulo_falso`);
+  - "Problemas de N pontos" (Canguru) é título que só separa (não vira matéria nem apoio);
+  - número com letra do nível ("A5.", "EQ3."), "Questão 2) (1 ponto)" (OBA), linha
+    "2) - Nota obtida" escondida; alternativa colada no pé da folha não é rodapé;
+  - no `montar_pagina_lado_a_lado`, só vale divisória no meio ou que acompanhe a área (o eixo
+    de um globo não é coluna);
+  - títulos: "OBMEP 2025 · Nível 1 · 1ª fase", "ONC 2025 · Nível A · 1ª fase", "Canguru 2023 · Nível B";
+  - gabarito: folha de soluções ("QUESTÃO 1 – ALTERNATIVA A") e prova com "( X )" na certa.
+  - ONC 2016–2025: código "AF2."/"AH4.“..." (nível + matéria; numeração que recomeça por
+    matéria é renumerada em sequência, campo `prefixo` da Barreira), "A12" sem ponto;
+    questão que começa à direita de uma foto vale como se começasse na margem
+    (`montar_pagina_lado_a_lado`); desenho do PDF feito de retângulos afastados é separado
+    (`separar`); gabarito em tabela com código ("A1 A2 ... A15" + letras, `gabaritosPorCodigo`),
+    um conjunto por nível, "NULA" = anulada, "AouB" = 1ª letra; `sugerirConjunto` dá +3 ao nível
+    que está no nome da prova.
+- **v5 (2026-11-04): Rio, Paraná e Etec antigas**
+  - UERJ: "Questão" + número grande EMBAIXO (`rotulo_partido`); página de língua (topo da folha diz
+    "Espanhol/Francês/Inglês", `linguas`): a 1ª língua vira apoio ("Texto em espanhol") das questões
+    dela, as outras ficam de fora; cabeçalho que muda de texto mas fica no mesmo lugar (chave `("pos", x, y)`,
+    início ou fim da linha, com vizinhos ±1); 1ª linha de parágrafo colada ao rótulo é da questão de baixo;
+  - instrução "O texto a seguir é referência para as questões 10 a 18" (UFPR) e "AS QUESTÕES 09 A 22
+    REFEREM-SE..." (UERJ); "questões de números 18 e 19" (Etec 2012, `PADRAO_QUESTOES`);
+  - UFPR: "02 - texto" (número + hífen); "►B)" = resposta certa: vira o gabarito e a seta é pintada de branco;
+  - lado a lado: título/instrução centralizados valem a largura toda; cabeçalho de tabela numa faixa
+    ("PRÓTONS | ELÉTRONS", Etec 2024) não é título (`titulo_falso` também no modo `rotulo`);
+  - leitor de gabarito: avisa "parece ser a prova" quando o arquivo tem alternativas com texto
+    e nenhuma resposta (`pareceProva`).
 - Opção recusada para anuladas: "mostrar a nota com gabarito incompleto". Motivo: uma questão
   esquecida viraria "anulada" sem o professor perceber.
 

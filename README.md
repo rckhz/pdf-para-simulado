@@ -27,10 +27,16 @@ Testado com estas provas (PDF original, com texto, não escaneado):
 | **Unesp / Vunesp** | Unesp 2025 1ª fase; Unifipa Medicina 2025; Vestibulinho Unesp Bauru | 50–90 | "QUESTÃO 01" com etiqueta colorida |
 | **Cotuca** (Unicamp) | Processo Seletivo 2020 | 36 | Redação antes das questões; alternativas a) a e) |
 | **Vestibular Fatec** | 2020, 2024, 2025 e 2026 | 54–64 | Modelos "Questão 01" e "6. Considere..." (1 ou 2 colunas) |
-| **Vestibulinho Etec** | 1º e 2º sem. 2025, 1º sem. 2026 | 50 | |
+| **Vestibulinho Etec** | 2º sem. 2012 e 2024; 1º e 2º sem. 2025; 1º sem. 2026 | 50 | Questões lado a lado; "questões de números 18 e 19" |
+| **UERJ** (Rio de Janeiro) | 2025, 1º Exame de Qualificação | 60 | "Questão" pequeno com o número grande embaixo; parte de língua (espanhol/francês/inglês) fica com a 1ª língua; gabarito com as línguas lado a lado |
+| **UFPR** (Paraná) | 2026, 1ª fase (caderno com gabarito) | 90 | "02 - Na figura..."; resposta marcada com "►" no caderno vira o gabarito (a seta some da imagem) |
 | **Provão Paulista** | 2 cadernos | 42–48 | Selos numerados em 2 colunas |
 | **SARESP** | simulados | — | Selos numerados em 2 colunas |
 | **Prova Paraná Mais** | 2025, 3ª série EM, caderno 1 | 77 | Gabarito com Caderno 1 e 2 na mesma folha |
+| **OBMEP** | 2025, 1ª fase níveis 1 e 3; Mirim 1 | 15–20 | Questões 1–4 na capa, fundo colorido; gabarito lido da folha de soluções ("QUESTÃO 1 – ALTERNATIVA A") |
+| **Canguru de Matemática** | 2023, níveis E, B e J | 24–30 | "Problemas de 3/4/5 pontos" separam as partes |
+| **ONC** (Olimpíada Nacional de Ciências) | 1ª fase de 2016 a 2025 (vários níveis) | 15–20 | Número com o nível e a matéria ("A5.", "AF2.", "EQ3."); gabarito em tabela "A1 A2..." com os 4 níveis (o app sugere o nível; "NULA" vira anulada) |
+| **OBA** (Astronomia) | 2025, níveis 3 e 4 | 10 | "Questão 2) (1 ponto)"; gabarito com "( X )" na certa (as que não têm X a professora marca) |
 
 Gabaritos: o sistema lê foto, PDF, planilha (Excel) ou texto, inclusive folhas com vários
 gabaritos (por ano, série, dia ou caderno) e tabelas com código do item ("001 PS25-LP-024 B").
