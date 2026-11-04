@@ -320,30 +320,24 @@ async function processarPdf(arquivo) {
   $('novoEscolher').classList.add('hidden');
   $('novoProgresso').classList.remove('hidden');
 
-  // 1) Leitor de provas (Python rodando no navegador)
+  // 1) Leitor de provas (Python rodando no navegador) e 2) recorte das questões
   passo(1);
   progresso(0, 1, 'Preparando o leitor de provas...');
-  let py;
-  try {
-    py = await carregarPyodide();
-  } catch (err) {
-    return erroNovo('<b>Não foi possível preparar o leitor de provas.</b><br>Verifique a internet e tente de novo.' +
-      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
-  }
-
-  // 2) Recorte das questões
-  passo(2);
   let r;
   try {
-    r = await recortar(py, arquivo);
+    r = await lerProva(arquivo);
   } catch (err) {
-    return erroNovo('<b>Não consegui ler este PDF.</b><br>Confira se é o arquivo certo da prova.' +
+    const preparando = $('passo1').className === 'ativo';
+    return erroNovo((preparando
+      ? '<b>Não foi possível preparar o leitor de provas.</b><br>Verifique a internet e tente de novo.'
+      : '<b>Não consegui ler este PDF.</b><br>Confira se é o arquivo certo da prova.') +
       '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
   }
-  if (!r.ok) {
-    return erroNovo('<b>Não encontrei questões neste PDF.</b><br>O sistema reconhece provas no modelo com o ' +
-      'número de cada questão num quadradinho azul (01, 02, 03...). Provas escaneadas (fotos) ou de outro ' +
-      'modelo não podem ser lidas automaticamente.');
+  if (!r || !r.ok) {
+    // o leitor diz o motivo (ex.: prova de somatória, PDF escaneado); senão, a mensagem geral
+    return erroNovo('<b>Não encontrei questões neste PDF.</b><br>' + escapar((r && r.erro) || '') +
+      '<br><span class="small">Funcionam provas em PDF com texto (baixadas do site oficial), com questões ' +
+      'de alternativas (A a E). Provas escaneadas (fotos) não podem ser lidas automaticamente.</span>');
   }
 
   // 3) Envio para o Google Drive
@@ -428,6 +422,113 @@ async function tentarDeNovo(fn, vezes) {
 function escapar(s) { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
 
 // ---- Pyodide: Python dentro do navegador (carregado uma vez só) ----
+// Preparação do Python (igual no Web Worker e no modo antigo): o extrator e o "etapas_js", que
+// devolve cada etapa em JSON (as imagens em base64).
+const PREPARO_PY = [
+  'import sys, json, base64',
+  'sys.path.insert(0, "/home/pyodide")',
+  'import extrair_questoes as E',
+  'def etapas_js(pdf, nome):',
+  '    for etapa in E.extrair_em_etapas(pdf, nome):',
+  '        if etapa[0] == "fim":',
+  '            r = etapa[1]',
+  '            for q in r.get("questoes", []):',
+  '                q["jpg"] = base64.b64encode(q["jpg"]).decode("ascii")',
+  '            yield json.dumps(["fim", r])',
+  '        else:',
+  '            yield json.dumps(list(etapa))',
+].join('\n');
+const fonteExtrator = () => new TextDecoder().decode(Uint8Array.from(atob(EXTRATOR_PY_B64), c => c.charCodeAt(0)));
+
+// Web Worker: o Python roda num "segundo funcionário" do navegador, separado da página.
+// Assim a tela não congela enquanto a prova é lida (antes, uma prova grande deixava a página
+// "sem resposta" por vários segundos). Se o navegador não deixar criar o Worker, usa o modo antigo.
+const CODIGO_WORKER = [
+  'let py = null;',
+  'onmessage = async (e) => {',
+  '  const m = e.data;',
+  '  try {',
+  '    if (m.tipo === "preparar") {',
+  '      importScripts(m.url + "pyodide.js");',
+  '      py = await loadPyodide({ indexURL: m.url });',
+  '      await py.loadPackage("pymupdf");',
+  '      py.FS.writeFile("/home/pyodide/extrair_questoes.py", m.fonte);',
+  '      py.runPython(m.preparo);',
+  '      postMessage({ tipo: "pronto" });',
+  '    } else if (m.tipo === "extrair") {',
+  '      py.globals.set("pdf_entrada", new Uint8Array(m.bytes));',
+  '      py.globals.set("nome_pdf", m.nome);',
+  '      const etapas = py.runPython("etapas_js(pdf_entrada.to_py(), nome_pdf)");',
+  '      try {',
+  '        for (let p = etapas.next(); !p.done; p = etapas.next()) postMessage({ tipo: "etapa", etapa: p.value });',
+  '      } finally {',
+  '        etapas.destroy();',
+  '        py.globals.delete("pdf_entrada");',
+  '      }',
+  '      postMessage({ tipo: "acabou" });',
+  '    }',
+  '  } catch (err) {',
+  '    postMessage({ tipo: "erro", msg: String((err && err.message) || err) });',
+  '  }',
+  '};',
+].join('\n');
+let workerPronto = null;
+function prepararWorker() {
+  if (!workerPronto) {
+    workerPronto = new Promise((ok, falha) => {
+      let w;
+      try {
+        w = new Worker(URL.createObjectURL(new Blob([CODIGO_WORKER], { type: 'text/javascript' })));
+      } catch (err) { return falha(err); }
+      w.onmessage = e => {
+        if (e.data.tipo === 'pronto') ok(w);
+        else if (e.data.tipo === 'erro') falha(new Error(e.data.msg));
+      };
+      w.onerror = e => { if (e.preventDefault) e.preventDefault(); falha(new Error(e.message || 'o leitor parou')); };
+      w.postMessage({ tipo: 'preparar', url: PYODIDE_URL, fonte: fonteExtrator(), preparo: PREPARO_PY });
+    });
+    workerPronto.catch(() => { workerPronto = null; });
+  }
+  return workerPronto;
+}
+/** Lê a prova no Worker, atualizando a barra a cada etapa. */
+async function recortarNoWorker(w, arquivo) {
+  const bytes = await arquivo.arrayBuffer();
+  return new Promise((ok, falha) => {
+    let resultado = null;
+    w.onmessage = e => {
+      const m = e.data;
+      if (m.tipo === 'etapa') {
+        const etapa = JSON.parse(m.etapa);
+        if (etapa[0] === 'fim') resultado = etapa[1];
+        else progresso(etapa[1], etapa[2], etapa[3]);
+      } else if (m.tipo === 'acabou') ok(resultado);
+      else if (m.tipo === 'erro') falha(new Error(m.msg));
+    };
+    w.onerror = e => {
+      if (e.preventDefault) e.preventDefault();
+      workerPronto = null;   // o Worker quebrou (ex.: memória): na próxima vez cria outro
+      falha(new Error(e.message || 'o leitor parou'));
+    };
+    w.postMessage({ tipo: 'extrair', bytes: bytes, nome: arquivo.name }, [bytes]);
+  });
+}
+/** Prepara o leitor (Worker; se não der, o modo antigo) e lê a prova. */
+let usarWorker = typeof Worker !== 'undefined';
+async function lerProva(arquivo) {
+  if (usarWorker) {
+    let w = null;
+    try { w = await prepararWorker(); } catch (err) {
+      usarWorker = false;   // navegador sem Worker (ou bloqueado): segue no modo antigo
+      console.warn('Web Worker indisponível, usando o modo antigo:', err);
+    }
+    if (w) { passo(2); return recortarNoWorker(w, arquivo); }
+  }
+  const py = await carregarPyodide();
+  passo(2);
+  return recortar(py, arquivo);
+}
+
 let pyodidePronto = null;
 function carregarScript(src) {
   return new Promise((ok, falha) => {
@@ -443,22 +544,8 @@ function carregarPyodide() {
       await carregarScript(PYODIDE_URL + 'pyodide.js');
       const py = await loadPyodide({ indexURL: PYODIDE_URL });
       await py.loadPackage('pymupdf');
-      const fonte = new TextDecoder().decode(Uint8Array.from(atob(EXTRATOR_PY_B64), c => c.charCodeAt(0)));
-      py.FS.writeFile('/home/pyodide/extrair_questoes.py', fonte);
-      py.runPython([
-        'import sys, json, base64',
-        'sys.path.insert(0, "/home/pyodide")',
-        'import extrair_questoes as E',
-        'def etapas_js(pdf, nome):',
-        '    for etapa in E.extrair_em_etapas(pdf, nome):',
-        '        if etapa[0] == "fim":',
-        '            r = etapa[1]',
-        '            for q in r.get("questoes", []):',
-        '                q["jpg"] = base64.b64encode(q["jpg"]).decode("ascii")',
-        '            yield json.dumps(["fim", r])',
-        '        else:',
-        '            yield json.dumps(list(etapa))',
-      ].join('\n'));
+      py.FS.writeFile('/home/pyodide/extrair_questoes.py', fonteExtrator());
+      py.runPython(PREPARO_PY);
       return py;
     })();
     pyodidePronto.catch(() => { pyodidePronto = null; });   // se falhar, tenta de novo na próxima vez

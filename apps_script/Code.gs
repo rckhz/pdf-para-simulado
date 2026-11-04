@@ -212,11 +212,30 @@ function entrarProfessor(senha) {
 }
 
 /**
+ * SEGURANÇA: toda função deste arquivo cujo nome NÃO termina com "_" pode ser chamada por
+ * qualquer pessoa que abrir o link (pelo console do navegador, com google.script.run).
+ * As funções feitas para o dono rodar no editor (redefinir senha, autorizar) chamam esta
+ * proteção: quem abre o link sem ser o dono (aluno, visitante) recebe um erro.
+ * (Para um visitante, o Google não informa o e-mail: getActiveUser() vem vazio.)
+ * O dono é o dono do arquivo do projeto no Drive (Session.getEffectiveUser() pediria uma
+ * permissão a mais, que o app não tem, e daria erro até para o dono).
+ */
+function soNoEditor_() {
+  const quem = Session.getActiveUser().getEmail();
+  let dono = '';
+  try { dono = DriveApp.getFileById(ScriptApp.getScriptId()).getOwner().getEmail(); } catch (e) {}
+  if (!quem || !dono || quem !== dono) {
+    throw new Error('Esta função só pode ser executada pelo dono do projeto, no editor do Apps Script.');
+  }
+}
+
+/**
  * Esqueceu a senha? Abra o editor do Apps Script, escolha esta função no menu
  * e clique em "Executar". Na próxima visita à Área do Professor, ela pedirá
  * uma senha nova. Nenhum simulado ou resultado é apagado.
  */
 function redefinirSenhaProfessor() {
+  soNoEditor_();
   props_().deleteProperty('SENHA_HASH');
   Logger.log('Senha apagada. Abra a Área do Professor para criar uma nova.');
 }
@@ -226,6 +245,7 @@ function redefinirSenhaProfessor() {
  * as permissões novas (ler gabarito de foto/PDF usa o Google Docs e a Drive API).
  */
 function autorizarPermissoes() {
+  soNoEditor_();
   DriveApp.getRootFolder();
   DocumentApp.getActiveDocument();
   Drive.Files.list({ pageSize: 1 });

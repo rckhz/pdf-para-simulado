@@ -177,6 +177,12 @@ lança `SESSAO_EXPIRADA` e a página pede a senha de novo.
 - Sem gabarito completo, a resposta fica "Aguardando gabarito" e é corrigida depois.
 - **Segurança:** a letra certa nunca vai para a página do aluno, exceto se o professor
   permitir (`MOSTRAR_CERTA`). A correção vai só como `certa/errada/branco/anulada`.
+- **Toda função do `Code.gs` sem `_` no fim pode ser chamada por QUALQUER visitante** (console
+  do navegador: `google.script.run.nomeDaFuncao()`). Função de professor: `exigirProfessor_(token)`.
+  Função para o dono rodar no editor (`redefinirSenhaProfessor`, `autorizarPermissoes`):
+  `soNoEditor_()` (o e-mail de quem chama tem que ser o do dono do arquivo do projeto no Drive;
+  não use `Session.getEffectiveUser()`, que pede uma permissão que o app não tem). Antes disso,
+  um aluno podia apagar a senha do professor pelo console.
 - `comoTexto_` coloca apóstrofo antes de `= + - @` (evita fórmula na planilha).
 
 ---
@@ -185,6 +191,12 @@ lança `SESSAO_EXPIRADA` e a página pede a senha de novo.
 
 - Carrega Pyodide 0.29.5 do jsDelivr (`PYODIDE_URL`) + `pymupdf`, roda o Python do
   `Extrator.html` e mostra o progresso. As imagens sobem em paralelo (`emParalelo`).
+- **O Python roda num Web Worker** (`CODIGO_WORKER`, criado por Blob; `prepararWorker`,
+  `recortarNoWorker`, `lerProva`): a página não congela (UERJ: maior trava 7,2 s → 0,1 s).
+  Se o navegador não deixar criar o Worker, `lerProva` cai no modo antigo (`carregarPyodide` +
+  `recortar`, na própria página). `PREPARO_PY` é o mesmo nos dois modos. Teste no Apps Script de
+  verdade (link `/dev`): `teste_worker.js` mede o tempo e a maior trava da página.
+- Se a prova não for aceita, a tela mostra `r.erro` do extrator (somatória, PDF escaneado...).
 - Abas: **gabarito**, **publicar**, **resultados** (`abrirAba`).
 - `numProva(n)` = número exibido (`n + primeira - 1`). Use sempre ele em textos para o professor.
 
@@ -327,8 +339,6 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
 
 ## 10. Ideias / pendências conhecidas
 
-- **A página do professor congela** com prova grande (o Pyodide roda na mesma "linha" da
-  página). Solução proposta: rodar a extração num Web Worker. Ainda não feito.
 - **Revisão manual antes de enviar** (ver cada questão, excluir, juntar com a seguinte): é a
   ideia mais útil do plano de melhorias do dono. Tem que ser ANTES do envio, porque o PDF só
   existe no navegador durante a extração.
