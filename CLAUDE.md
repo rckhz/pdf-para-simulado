@@ -175,8 +175,12 @@ lança `SESSAO_EXPIRADA` e a página pede a senha de novo.
   Ex.: 90 questões com 3 anuladas → vale 87. Resposta em branco conta como errada.
 - `salvarGabarito` chama `recorrigir_`: **recalcula as notas de quem já respondeu**.
 - Sem gabarito completo, a resposta fica "Aguardando gabarito" e é corrigida depois.
-- **Segurança:** a letra certa nunca vai para a página do aluno, exceto se o professor
-  permitir (`MOSTRAR_CERTA`). A correção vai só como `certa/errada/branco/anulada`.
+- **Letra certa:** o gabarito nunca vai para a página do aluno ANTES do envio. Depois do envio,
+  a correção vai como `certa/errada/branco/anulada` e, se `MOSTRAR_CERTA` não for `'nao'`, também
+  a letra certa de cada questão. **O padrão é mostrar** (de propósito: os simulados são treino);
+  o professor desliga em ⚙ Configurações. O aluno pode enviar mais de uma vez (sem trava).
+  O dono já decidiu manter assim: não propor "esconder por padrão", trava de reenvio nem modo
+  "valendo nota".
 - **Toda função do `Code.gs` sem `_` no fim pode ser chamada por QUALQUER visitante** (console
   do navegador: `google.script.run.nomeDaFuncao()`). Função de professor: `exigirProfessor_(token)`.
   Função para o dono rodar no editor (`redefinirSenhaProfessor`, `autorizarPermissoes`):

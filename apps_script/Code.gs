@@ -14,8 +14,9 @@
  * no navegador do professor (Professor.html + Extrator.html), e as imagens
  * chegam aqui já prontas.
  *
- * Segurança: o gabarito nunca é enviado para a página do aluno. As funções da
- * Área do Professor exigem a senha (token de sessão).
+ * Segurança: o gabarito não vai para a página do aluno antes do envio. Depois que ele envia,
+ * a correção mostra a letra certa de cada questão (padrão; o professor pode desligar em
+ * Configurações). As funções da Área do Professor exigem a senha (token de sessão).
  */
 
 const NOME_PLANILHA = 'Simulados - Resultados';
@@ -642,11 +643,11 @@ function enviarRespostas(payload) {
     total: c ? c.validas : prova.total,   // sem as anuladas
     anuladas: c ? prova.total - c.validas : 0,
     nota: c ? c.nota : '',
-    // Para a tela de correção do aluno: só diz se acertou/errou/deixou em branco.
-    // A letra certa NÃO vai: assim ninguém passa o gabarito para a turma.
+    // Para a tela de correção do aluno: se acertou/errou/deixou em branco cada questão.
     correcao: c ? respostas.map((r, i) => prova.gabarito[i] === ANULADA ? 'anulada'
       : (!r ? 'branco' : (r === prova.gabarito[i] ? 'certa' : 'errada'))) : [],
-    // Letra certa de cada questão, só se o professor deixar (Configurações > Área do Professor).
+    // Letra certa de cada questão: vai por padrão (os simulados são treino); o professor pode
+    // desligar em ⚙ Configurações da Área do Professor.
     certas: c && mostrarCertaAoAluno_() ? prova.gabarito.slice(0, prova.total) : []
   };
 }
