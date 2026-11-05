@@ -79,6 +79,9 @@
       <p class="muted">Receber um e-mail a cada prova enviada por um aluno (deixe em branco para não receber):</p>
       <div class="link-box"><input type="email" id="email" placeholder="seuemail@exemplo.com"><button class="btn secondary" id="btnEmail">Salvar</button></div>
       <div class="muted small" id="emailStatus"></div>
+      <p class="muted" style="margin-top:16px">Endereço do <b>site dos alunos</b> (opcional, ex.: https://meu-simulado.vercel.app). Com ele, o link que você manda aos alunos abre mesmo em navegador com várias contas Google:</p>
+      <div class="link-box"><input type="url" id="siteAlunos" placeholder="https://..."><button class="btn secondary" id="btnSiteAlunos">Salvar</button></div>
+      <div class="muted small" id="siteAlunosStatus"></div>
       <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 0 4px;cursor:pointer">
         <input type="checkbox" id="mostrarCerta" style="width:20px;height:20px;margin-top:2px">
         <span><b>Mostrar a resposta certa ao aluno</b> depois que ele envia a prova.<br>
@@ -241,6 +244,7 @@ function abrirPainel() {
   api('painelProfessor').then(dados => {
     mostrarTela('Painel');
     $('email').value = dados.email;
+    $('siteAlunos').value = dados.siteAlunos || '';
     $('mostrarCerta').checked = dados.mostrarCerta !== false;
     $('linkPlanilha').href = dados.planilhaUrl;
     const lista = $('listaProvas');
@@ -275,6 +279,16 @@ $('btnEmail').onclick = () => {
   api('configurarEmail', $('email').value)
     .then(e => { $('emailStatus').textContent = e ? 'Pronto! Os avisos irão para ' + e : 'Avisos por e-mail desligados.'; })
     .catch(err => { $('emailStatus').textContent = err.message; });
+};
+$('btnSiteAlunos').onclick = () => {
+  $('siteAlunosStatus').textContent = 'Salvando...';
+  api('configurarSiteAlunos', $('siteAlunos').value)
+    .then(s => {
+      $('siteAlunos').value = s;
+      $('siteAlunosStatus').textContent = s ? 'Pronto! Os links dos simulados agora apontam para ' + s
+                                            : 'Os links dos simulados voltaram a ser os do Google.';
+    })
+    .catch(err => { $('siteAlunosStatus').textContent = err.message; });
 };
 document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => { salvarGabaritoAgora(); abrirPainel(); });
 

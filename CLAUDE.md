@@ -52,6 +52,8 @@ Aluno abre ?prova=ID ──► Aluno.html mostra imagens, envia respostas ──
 | `src/pdf_para_simulado/gerar_apps_script.py` | Embute o `.py` no `Extrator.html` |
 | `src/pdf_para_simulado/empacotar.py` | Monta o ZIP para o professor (troca `{{LINK_DO_PROFESSOR}}` só dentro do ZIP) |
 | `entrega/` | 3 textos simples para o professor (ler primeiro, instalar, usar) |
+| `site/` | **Site dos alunos** (Vercel): `index.html` GERADO do `Aluno.html` por `gerar_site.py` (não edite à mão); `gerar_config.js` + `vercel.json` montam `public/` com o `config.js` (variável `APP_URL` da Vercel) |
+| `src/pdf_para_simulado/gerar_site.py` | Gera `site/index.html` a partir do `Aluno.html` (rode sempre que mudar o `Aluno.html`) |
 
 O pacote Python se chama `pdf_para_simulado` (antes era `escola`); o projeto no `pyproject.toml`
 se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-simulado`.
@@ -62,6 +64,7 @@ se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-s
 uv sync                                                    # prepara o ambiente (depois de clonar/mover a pasta)
 uv run src/pdf_para_simulado/extrair_questoes.py prova.pdf # extrai pelo terminal -> saida/
 uv run src/pdf_para_simulado/gerar_apps_script.py          # OBRIGATÓRIO após mudar o extrator
+uv run src/pdf_para_simulado/gerar_site.py                 # OBRIGATÓRIO após mudar o Aluno.html
 uv run src/pdf_para_simulado/empacotar.py "<link ?professor>"  # ZIP do professor
 ```
 
@@ -231,6 +234,16 @@ Cada questão tem botões A–E (só as letras que existem) e **"Anular questão
 ---
 
 ## 6. Página do aluno (`Aluno.html`)
+
+- **Dois lugares, um arquivo só:** dentro do Google (`.../exec?prova=ID`) e no **site dos alunos**
+  (Vercel, `site/`). Motivo: em navegador com várias contas Google, o link `script.google.com` vira
+  `.../u/1/...` e mostra "Não foi possível abrir o arquivo" (defeito do Google, sem conserto no
+  Apps Script). Toda chamada ao servidor passa por `servidor(funcao, ...args)`: no Google usa
+  `google.script.run`; no site faz `fetch` POST (texto JSON, `credentials: 'omit'`, sem contas) no
+  `doPost` do `Code.gs`, que só aceita `simuladosAbertos`, `dadosSimulado`, `imagemQuestao`,
+  `enviarRespostas`. Professor configura o endereço do site em ⚙ Configurações (`SITE_ALUNOS`);
+  aí `linkAluno_` passa a dar o link do site. A Área do Professor continua só no Google.
+- Script Property nova: `SITE_ALUNOS` (endereço do site, sem barra no fim).
 
 - Nome + turma, uma questão por vez (imagem), grade de resumo, botão de revisão antes de enviar.
 - **Rascunho** em `localStorage` por `DIAS_RASCUNHO` dias: se fechar a aba, recupera as

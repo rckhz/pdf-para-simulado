@@ -52,6 +52,35 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+/**
+ * "Porta de entrada" para o SITE DOS ALUNOS (hospedado fora do Google, ex.: Vercel).
+ * Motivo: em navegador com várias contas Google logadas, o link script.google.com tenta
+ * escolher uma conta (".../u/1/...") e às vezes mostra "Não foi possível abrir o arquivo".
+ * O site chama esta porta SEM mandar as contas do navegador, então o erro não acontece.
+ * Só as funções públicas da página do aluno passam por aqui (nada do professor).
+ * Pedido: POST com o texto JSON {"funcao": "...", "args": [...]}.
+ * Resposta: JSON {"resultado": ...} ou {"erro": "mensagem"}.
+ */
+function doPost(e) {
+  let saida;
+  try {
+    const pedido = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    const args = Array.isArray(pedido.args) ? pedido.args : [];
+    let resultado;
+    switch (pedido.funcao) {
+      case 'simuladosAbertos': resultado = simuladosAbertos(); break;
+      case 'dadosSimulado':    resultado = dadosSimulado(args[0]); break;
+      case 'imagemQuestao':    resultado = imagemQuestao(args[0], args[1]); break;
+      case 'enviarRespostas':  resultado = enviarRespostas(args[0]); break;
+      default: throw new Error('Função desconhecida.');
+    }
+    saida = { resultado: resultado };
+  } catch (err) {
+    saida = { erro: String((err && err.message) || err) };
+  }
+  return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
+}
+
 /** Usado nos arquivos .html para incluir outro arquivo (ex.: o Extrator). */
 function include(nome) {
   return HtmlService.createHtmlOutputFromFile(nome).getContent();
@@ -158,7 +187,9 @@ function gabaritoCompleto_(prova) {
 }
 
 function linkAluno_(id) {
-  return ScriptApp.getService().getUrl() + '?prova=' + encodeURIComponent(id);
+  // com o site dos alunos configurado, o link é o do site (evita o erro de várias contas Google)
+  const site = props_().getProperty('SITE_ALUNOS');
+  return (site ? site + '/' : ScriptApp.getService().getUrl()) + '?prova=' + encodeURIComponent(id);
 }
 
 
@@ -274,6 +305,7 @@ function painelProfessor(token) {
     provas: provas,
     planilhaUrl: ss.getUrl(),
     email: props_().getProperty('EMAIL_NOTIFICACAO') || '',
+    siteAlunos: props_().getProperty('SITE_ALUNOS') || '',
     mostrarCerta: mostrarCertaAoAluno_()
   };
 }
@@ -523,6 +555,21 @@ function configurarEmail(token, email) {
   if (email) props_().setProperty('EMAIL_NOTIFICACAO', email);
   else props_().deleteProperty('EMAIL_NOTIFICACAO');
   return email;
+}
+
+/**
+ * Endereço do SITE DOS ALUNOS (ex.: https://meu-simulado.vercel.app). Com ele, o link que a
+ * Área do Professor mostra para os alunos passa a ser o do site (veja doPost). Vazio = link do Google.
+ */
+function configurarSiteAlunos(token, endereco) {
+  exigirProfessor_(token);
+  endereco = String(endereco || '').trim().replace(/[?#].*$/, '').replace(/\/+$/, '');
+  if (endereco && !/^https:\/\/[^\s/]+\.[^\s/]+(\/[^\s]*)?$/.test(endereco)) {
+    throw new Error('Digite o endereço completo do site, começando com https://');
+  }
+  if (endereco) props_().setProperty('SITE_ALUNOS', endereco);
+  else props_().deleteProperty('SITE_ALUNOS');
+  return endereco;
 }
 
 

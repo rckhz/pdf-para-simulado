@@ -91,6 +91,23 @@ let jaRevisou = false;   // depois de abrir a revisão, todas as questões ganha
 const imagens = {};   // imagens já baixadas (número -> data URL), para não baixar de novo
 const $ = id => document.getElementById(id);
 
+/**
+ * Chama uma função do servidor (Code.gs). Dentro do Google (link script.google.com) usa o
+ * google.script.run de sempre. No SITE DOS ALUNOS (Vercel) usa a "porta de entrada" do Code.gs
+ * (doPost), sem mandar as contas Google do navegador: assim não acontece o erro do ".../u/1/..."
+ * em navegador com várias contas. (O texto vai como "text/plain" para o navegador não barrar.)
+ */
+function servidor(funcao, ...args) {
+  if (window.google && google.script && google.script.run) {
+    return new Promise((ok, falha) => google.script.run.withSuccessHandler(ok)
+      .withFailureHandler(err => falha(new Error(String((err && err.message) || err).replace(/^(Error|Exception):\s*/, ''))))[funcao](...args));
+  }
+  return fetch(window.APP_URL, { method: 'POST', credentials: 'omit', body: JSON.stringify({ funcao: funcao, args: args }) })
+    .then(r => { if (!r.ok) throw new Error('o servidor não respondeu (' + r.status + ')'); return r.json(); })
+    .then(r => { if (r.erro) throw new Error(r.erro); return r.resultado; })
+    .catch(err => { throw new Error(/fetch|network/i.test(err.message) ? 'sem conexão com o servidor. Verifique a internet.' : err.message); });
+}
+
 function updateProgress() {
   const done = Object.keys(answers).length;
   const pct = total ? ((current + 1) / total * 100) : 0;
@@ -163,15 +180,12 @@ const pedidos = {};
 function carregarImagem(n) {
   if (imagens[n]) return Promise.resolve(imagens[n]);
   if (pedidos[n]) return pedidos[n];
-  const tentar = vez => new Promise((ok, falha) => {
-    google.script.run
-      .withSuccessHandler(data => { imagens[n] = data; ok(data); })
-      .withFailureHandler(err => {
-        if (vez >= 4) return falha(err);
-        setTimeout(() => tentar(vez + 1).then(ok, falha), 1000 * vez + Math.random() * 1000);
-      })
-      .imagemQuestao(provaId, n);
-  });
+  const tentar = vez => servidor('imagemQuestao', provaId, n)
+    .then(data => { imagens[n] = data; return data; })
+    .catch(err => {
+      if (vez >= 4) throw err;
+      return new Promise(r => setTimeout(r, 1000 * vez + Math.random() * 1000)).then(() => tentar(vez + 1));
+    });
   pedidos[n] = tentar(1).finally(() => { delete pedidos[n]; });
   return pedidos[n];
 }
@@ -283,8 +297,8 @@ $('submit').onclick = () => {
   };
   $('submit').disabled = true;
   $('submitStatus').textContent = 'Enviando...';
-  google.script.run
-    .withSuccessHandler(result => {
+  servidor('enviarRespostas', payload)
+    .then(result => {
       apagarRascunho();   // enviado: não precisa mais guardar no aparelho
       $('recuperado').classList.add('hidden');
       $('reviewArea').classList.add('hidden');
@@ -303,11 +317,10 @@ $('submit').onclick = () => {
         $('successMessage').textContent = 'Seu envio foi registrado. O professor vai divulgar o resultado.';
       }
     })
-    .withFailureHandler(err => {
+    .catch(err => {
       $('submit').disabled = false;
       $('submitStatus').textContent = 'Erro: ' + err.message;
-    })
-    .enviarRespostas(payload);
+    });
 };
 
 // -------- Correção (depois de enviar) --------
@@ -380,8 +393,8 @@ function erroInicial(msg) {
 function abrirSimulado(id) {
   provaId = id;
   $('escolher').classList.add('hidden');
-  google.script.run
-    .withSuccessHandler(dados => {
+  servidor('dadosSimulado', id)
+    .then(dados => {
       total = dados.total;
       primeira = dados.primeira || 1;
       questions = [];
@@ -398,16 +411,15 @@ function abrirSimulado(id) {
       recuperarRascunho();   // respostas guardadas neste aparelho, se houver
       showQuestion();
     })
-    .withFailureHandler(err => erroInicial(err.message))
-    .dadosSimulado(id);
+    .catch(err => erroInicial(err.message));
 }
 
 if (provaId) {
   abrirSimulado(provaId);
 } else {
   // Link sem ?prova=: mostra os simulados abertos.
-  google.script.run
-    .withSuccessHandler(lista => {
+  servidor('simuladosAbertos')
+    .then(lista => {
       if (!lista.length) return erroInicial('Nenhum simulado está aberto no momento.');
       if (lista.length === 1) return abrirSimulado(lista[0].id);
       $('progressText').textContent = '';
@@ -423,8 +435,7 @@ if (provaId) {
         $('listaSimulados').append(b);
       });
     })
-    .withFailureHandler(err => erroInicial(err.message))
-    .simuladosAbertos();
+    .catch(err => erroInicial(err.message));
 }
 </script>
 </body>
