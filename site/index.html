@@ -74,7 +74,10 @@
       </div>
     </div>
     <p class="muted">Guarde ou anote seu resultado.</p>
-    <button class="btn primary" id="restart">↻ Refazer simulado</button>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn secondary" id="verSimulados">← Ver todos os simulados</button>
+      <button class="btn primary" id="restart">↻ Refazer simulado</button>
+    </div>
   </section>
   <div class="footer">Responda individualmente. O formulário registra uma única submissão ao final.</div>
 </div>
@@ -394,8 +397,39 @@ function erroInicial(msg) {
   $('progressText').style.color = '#b91c1c';
 }
 
+/** Esconde tudo do simulado anterior e zera as respostas (para abrir outro ou voltar à lista). */
+function limparSimulado() {
+  ['success', 'identification', 'questionArea', 'reviewArea', 'correcao', 'recuperado', 'studentResult']
+    .forEach(id => $(id).classList.add('hidden'));
+  answers = {};
+  current = 0;
+  total = 0;
+  questions = [];
+  jaRevisou = false;
+  certasCorrecao = [];
+  // as imagens guardadas são do simulado anterior (a questão 1 de outro simulado é outra imagem)
+  Object.keys(imagens).forEach(n => delete imagens[n]);
+  Object.keys(pedidos).forEach(n => delete pedidos[n]);
+  // (nome e turma ficam: é o mesmo aluno trocando de simulado)
+  $('submit').disabled = false;
+  $('submitStatus').textContent = '';
+  $('titulo').textContent = 'Simulado';
+  document.title = 'Simulado';
+  $('headerSubtitle').textContent = '';
+  $('bar').style.width = '0%';
+  $('progressText').style.color = '';
+}
+
+/** No site dos alunos, o endereço acompanha o simulado aberto (recarregar a página não perde). */
+function trocarEndereco(id) {
+  if (window.google && google.script) return;   // dentro do Google o endereço não muda
+  try { history.replaceState(null, '', id ? '?prova=' + encodeURIComponent(id) : location.pathname); } catch (e) {}
+}
+
 function abrirSimulado(id) {
+  if (provaId !== id) limparSimulado();
   provaId = id;
+  trocarEndereco(id);
   $('escolher').classList.add('hidden');
   servidor('dadosSimulado', id)
     .then(dados => {
@@ -418,14 +452,18 @@ function abrirSimulado(id) {
     .catch(err => erroInicial(err.message));
 }
 
-if (provaId) {
-  abrirSimulado(provaId);
-} else {
-  // Link sem ?prova=: mostra os simulados abertos.
+/**
+ * Mostra os simulados abertos. Na abertura da página (link sem ?prova=), se só houver um, já
+ * abre direto; pelo botão "Ver todos os simulados", sempre mostra a lista.
+ */
+function mostrarSimulados(abrirSeForUnico) {
+  $('escolher').classList.add('hidden');
+  $('listaSimulados').innerHTML = '';
+  $('progressText').textContent = 'Carregando os simulados...';
   servidor('simuladosAbertos')
     .then(lista => {
       if (!lista.length) return erroInicial('Nenhum simulado está aberto no momento.');
-      if (lista.length === 1) return abrirSimulado(lista[0].id);
+      if (lista.length === 1 && abrirSeForUnico) return abrirSimulado(lista[0].id);
       $('progressText').textContent = '';
       $('escolher').classList.remove('hidden');
       lista.forEach(s => {
@@ -441,6 +479,17 @@ if (provaId) {
     })
     .catch(err => erroInicial(err.message));
 }
+
+$('verSimulados').onclick = () => {
+  limparSimulado();
+  provaId = '';
+  trocarEndereco('');
+  mostrarSimulados(false);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+if (provaId) abrirSimulado(provaId);
+else mostrarSimulados(true);
 </script>
 </body>
 </html>
