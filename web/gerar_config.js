@@ -25,7 +25,8 @@ if (!chave) {
 const saida = path.join(__dirname, 'public');
 fs.mkdirSync(saida, { recursive: true });
 for (const arquivo of fs.readdirSync(__dirname)) {
-  if (/\.(html|css|js|png|svg|ico|webp)$/.test(arquivo) && !['gerar_config.js', 'config.js'].includes(arquivo)) {
+  if ((/\.(html|css|js|png|svg|ico|webp)$/.test(arquivo) || arquivo === '_headers') &&
+      !['gerar_config.js', 'config.js'].includes(arquivo)) {
     fs.copyFileSync(path.join(__dirname, arquivo), path.join(saida, arquivo));
   }
 }
