@@ -40,6 +40,8 @@ create table if not exists public.professores (
   ativo     boolean not null default true,
   criado_em timestamptz not null default now()
 );
+-- (colunas acrescentadas depois: "add column if not exists" para quem já rodou a versão anterior)
+alter table public.professores add column if not exists trocar_senha boolean not null default false;   -- senha provisória
 
 create table if not exists public.simulados (
   id               uuid primary key default gen_random_uuid(),
@@ -361,6 +363,18 @@ begin
 end
 $$;
 
+-- A escola já tem administrador? (a tela de login usa para mostrar o "primeiro acesso")
+create or replace function public.escola_tem_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from professores where papel = 'admin')
+$$;
+
+-- O professor trocou a senha provisória (o login já trocou a senha; aqui só tira o aviso).
+create or replace function public.senha_trocada() returns void
+language sql volatile security definer set search_path = public as $$
+  update professores set trocar_senha = false where id = auth.uid()
+$$;
+
 -- Instalação: a 1ª pessoa logada vira o administrador (só funciona enquanto não houver nenhum).
 create or replace function public.assumir_administracao(nome_admin text) returns void
 language plpgsql volatile security definer set search_path = public as $$
@@ -442,10 +456,10 @@ grant select, insert, update, delete on public.config_escola, public.professores
 
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.provas_abertas(), public.prova_por_codigo(text), public.dados_prova(uuid),
-      public.enviar_respostas(uuid, text, text, text[]) to anon, authenticated;
+      public.enviar_respostas(uuid, text, text, text[]), public.escola_tem_admin() to anon, authenticated;
 grant execute on function public.meu_papel(), public.eh_admin(), public.dono_do_simulado(uuid),
       public.dono_da_pasta(text), public.abrir_prova(uuid, int), public.encerrar_prova(uuid),
-      public.assumir_administracao(text) to authenticated;
+      public.assumir_administracao(text), public.senha_trocada() to authenticated;
 
 
 -- ---------------------------------------------------------------------

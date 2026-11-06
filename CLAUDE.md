@@ -56,7 +56,7 @@ Aluno abre ?prova=ID ──► Aluno.html mostra imagens, envia respostas ──
 | `src/pdf_para_simulado/gerar_site.py` | Gera `site/index.html` a partir do `Aluno.html` (rode sempre que mudar o `Aluno.html`) |
 | `PLANO_SUPABASE.md` | **Plano do site próprio** (Supabase + Cloudflare Pages), em construção por etapas. Leia antes de mexer em `web/` ou `supabase/` |
 | `supabase/esquema.sql` | Banco do site próprio: tabelas, RLS, correção e código da prova DENTRO do banco, funções do aluno (`provas_abertas`, `prova_por_codigo`, `dados_prova`, `enviar_respostas`) e do professor. Rode no SQL Editor (pode rodar de novo) |
-| `web/` | Site próprio: `index.html` (aluno/professor), `aluno.html` (código ou link; fala com o Supabase por `rpc()`; imagens da pasta pública `questoes`), `professor.html` (provisório). `gerar_config.js` monta `public/` com `SUPABASE_URL` + `SUPABASE_KEY` (chave PÚBLICA; recusa a secreta) |
+| `web/` | Site próprio: `index.html` (aluno/professor), `aluno.html` (código ou link; fala com o Supabase por `rpc()`; imagens da pasta pública `questoes`), `professor.html` (Área do Professor: veio do `apps_script/Professor.html`, com a camada `API`/`api()` falando com o Supabase nos mesmos formatos do Code.gs; login e-mail+senha, 1ª conta vira administrador, imagens viram WebP ~55 KB, gabarito por arquivo lido no navegador: SheetJS/PyMuPDF/Tesseract.js, código + prazo, Excel), `extrator.js` (GERADO por `gerar_apps_script.py`). `gerar_config.js` monta `public/` com `SUPABASE_URL` + `SUPABASE_KEY` (chave PÚBLICA; recusa a secreta) |
 
 O pacote Python se chama `pdf_para_simulado` (antes era `escola`); o projeto no `pyproject.toml`
 se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-simulado`.
@@ -66,7 +66,7 @@ se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-s
 ```bash
 uv sync                                                    # prepara o ambiente (depois de clonar/mover a pasta)
 uv run src/pdf_para_simulado/extrair_questoes.py prova.pdf # extrai pelo terminal -> saida/
-uv run src/pdf_para_simulado/gerar_apps_script.py          # OBRIGATÓRIO após mudar o extrator
+uv run src/pdf_para_simulado/gerar_apps_script.py          # OBRIGATÓRIO após mudar o extrator (gera Extrator.html e web/extrator.js)
 uv run src/pdf_para_simulado/gerar_site.py                 # OBRIGATÓRIO após mudar o Aluno.html
 uv run src/pdf_para_simulado/empacotar.py "<link ?professor>"  # ZIP do professor
 ```

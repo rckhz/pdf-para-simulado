@@ -299,7 +299,9 @@ $('btnNovo').onclick = () => {
   $('novoProgresso').classList.add('hidden');
   $('novoErro').classList.add('hidden');
   $('arquivoPdf').value = '';
-  carregarPyodide().catch(() => {});   // já começa a preparar o leitor enquanto o professor procura o arquivo
+  // já começa a preparar o leitor enquanto o professor procura o arquivo (no Worker; só usa a
+  // própria página se o navegador não tiver Worker, para não baixar o Python duas vezes)
+  (usarWorker ? prepararWorker() : carregarPyodide()).catch(() => {});
 };
 $('arquivoPdf').onchange = e => { if (e.target.files[0]) processarPdf(e.target.files[0]); };
 const area = $('areaSoltar');

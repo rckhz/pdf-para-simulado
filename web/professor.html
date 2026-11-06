@@ -3,20 +3,1838 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Área do Professor</title>
+  <title>Área do Professor · Simulados</title>
   <style>
-    :root{font-family:Arial,sans-serif;color:#172033;background:#f3f5f9}
-    body{margin:0;padding:22px 12px;min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .caixa{max-width:520px;background:#fff;border:1px solid #e1e6ef;border-radius:18px;padding:30px 24px;text-align:center}
-    a{color:#1d4ed8}
+    :root{font-family:Arial,sans-serif;color:#172033;background:#f3f5f9}*{box-sizing:border-box}
+    body{margin:0;padding:18px 12px 90px}.wrap{max-width:920px;margin:auto}
+    h1{font-size:24px;margin:0}h2{font-size:19px;margin:0 0 10px}
+    .card{background:#fff;border:1px solid #e1e6ef;border-radius:16px;box-shadow:0 5px 20px #14213d0a;padding:20px;margin-bottom:14px}
+    .muted{color:#64748b;font-size:14px}.small{font-size:13px}.hidden{display:none!important}
+    .linha{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.logo{font-weight:800;font-size:18px;color:#1d4ed8}
+    .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;font-size:15px;text-decoration:none;display:inline-block;text-align:center}
+    .btn.grande{padding:16px 24px;font-size:17px}.primary{background:#2563eb;color:#fff}.primary:hover{background:#1d4ed8}.secondary{background:#e8edf5;color:#1e293b}.verde{background:#16a34a;color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}
+    .voltar{background:none;border:0;color:#1d4ed8;font-weight:700;font-size:15px;cursor:pointer;padding:6px 0;margin-bottom:8px}
+    input[type=password],input[type=text],input[type=email]{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0}
+    .centro{max-width:420px;margin:40px auto;text-align:center}.erro{color:#b91c1c;font-size:14px;margin-top:10px;min-height:18px}
+    .erro-box{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:12px;padding:16px;margin-top:14px;line-height:1.5}
+    .ok-box{background:#f0fdf4;border:1px solid #86efac;color:#14532d;border-radius:12px;padding:14px;margin-bottom:10px;line-height:1.5}
+    .alerta-box{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:12px;padding:14px;margin-bottom:10px;line-height:1.5}
+    .spinner{width:34px;height:34px;border:4px solid #dbe4f3;border-top-color:#2563eb;border-radius:50%;animation:gira 1s linear infinite;margin:30px auto 12px}@keyframes gira{to{transform:rotate(360deg)}}
+    .prova-item{display:block;width:100%;text-align:left;background:#fff;border:1px solid #e1e6ef;border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;font-size:15px}
+    .prova-item:hover{border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}.prova-item b{font-size:17px}
+    .chip{display:inline-block;font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;background:#e8edf5;color:#334155}
+    .chip.Publicado{background:#dcfce7;color:#166534}.chip.Rascunho{background:#fef3c7;color:#92400e}.chip.Encerrado{background:#e5e7eb;color:#374151}
+    .soltar{display:block;border:3px dashed #93c5fd;border-radius:16px;padding:44px 20px;text-align:center;cursor:pointer;background:#f8fbff;font-size:17px}
+    .soltar:hover,.soltar.arrastando{background:#eff6ff;border-color:#2563eb}.soltar .icone{font-size:46px}.soltar span{display:block;color:#64748b;font-size:14px;margin-top:6px}
+    .passos{padding-left:22px;line-height:2;font-size:16px}.passos li{color:#94a3b8}.passos li.ativo{color:#1d4ed8;font-weight:700}.passos li.feito{color:#16a34a}.passos li.feito::after{content:" ✓"}
+    .progress{height:12px;background:#e8edf5;border-radius:20px;overflow:hidden;margin:12px 0 8px}.bar{height:100%;background:#2563eb;width:0;transition:width .25s}
+    .abas{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.abas button{flex:1;min-width:150px;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;color:#334155}
+    .abas button.ativa{background:#2563eb;border-color:#2563eb;color:#fff}
+    .qgrade{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;align-items:start}
+    .qlinha{background:#fff;border:1px solid #e1e6ef;border-radius:12px;padding:10px 12px}.qlinha.marcada{border-color:#86efac;background:#f7fdf9}
+    .qlinha .qtopo{justify-content:flex-start}.qlinha.aberta{grid-column:1/-1}.qlinha .letras{margin-top:8px}.qlinha .letra{padding:9px 0;font-size:17px;border-radius:10px}
+    .ver{background:none;border:0;color:#64748b;font-size:12px;text-decoration:underline;cursor:pointer;margin-left:auto;padding:0}
+    .qtopo{display:flex;justify-content:space-between;align-items:center;gap:10px}.tag{font-size:12px;color:#1d4ed8;background:#eff6ff;padding:5px 9px;border-radius:20px}
+    .qimg{min-height:120px;margin:12px 0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:14px}.qimg img{width:100%;height:auto;border:1px solid #e5e7eb;border-radius:8px}
+    .qaviso{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
+    .letras{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.letra{border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:14px 0;font-size:20px;font-weight:800;cursor:pointer;color:#334155}
+    .letra:hover{border-color:#2563eb}.letra.escolhida{background:#16a34a;border-color:#16a34a;color:#fff}
+    .anular{margin-top:6px;border:1px dashed #cbd5e1;background:#fff;border-radius:8px;padding:4px 10px;font-size:13px;color:#64748b;cursor:pointer}
+    .anular.escolhida{background:#f59e0b;border:1px solid #f59e0b;color:#fff;font-weight:700}
+    .qlinha.anulada .letra{opacity:.35}
+    .barra-fixa{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e1e6ef;box-shadow:0 -4px 16px #14213d14;padding:12px 16px;z-index:5}
+    .barra-fixa .dentro{max-width:920px;margin:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.barra-fixa .btn{margin-left:auto}
+    .link-box{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.link-box input{flex:1;min-width:220px;font-size:14px;background:#f8fafc}.link-box .btn{display:inline-flex;align-items:center;justify-content:center;margin:6px 0}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eef2f7}th{color:#64748b;font-size:12px;text-transform:uppercase}
+    .numeros{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}.numero{flex:1;min-width:130px;background:#f8fafc;border-radius:12px;padding:14px}.numero b{display:block;font-size:28px}
+    .perigo{text-align:center;margin:30px 0}.link-perigo{background:none;border:0;color:#b91c1c;cursor:pointer;font-size:14px;text-decoration:underline;margin:0 10px}
+    select{padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;background:#fff}
+    .codigo-grande{font-size:46px;font-weight:800;letter-spacing:10px;text-align:center;background:#eff6ff;color:#1d4ed8;border-radius:14px;padding:18px 10px;margin:12px 0}
+    .apagar-envio{background:none;border:0;color:#b91c1c;cursor:pointer;font-size:15px}
+    .link-neutro{background:none;border:0;color:#1d4ed8;cursor:pointer;font-size:14px;text-decoration:underline;margin:0 10px}
+    details summary{cursor:pointer;font-weight:700}
+    @media(max-width:600px){.letra{padding:12px 0;font-size:17px}.abas button{min-width:0;font-size:13px;padding:10px 4px}h1{font-size:20px}}
   </style>
 </head>
 <body>
-  <!-- Provisório: a Área do Professor do site novo é a etapa 3 do PLANO_SUPABASE.md. -->
-  <main class="caixa">
-    <h1>Área do Professor</h1>
-    <p>Em construção. Por enquanto, use a Área do Professor do app atual.</p>
-    <p><a href="./">← Voltar ao início</a></p>
-  </main>
+<div class="wrap">
+  <div class="topo"><div class="logo">📝 Simulados · Área do Professor</div><div><span class="muted small" id="quemSou"></span><button class="link-neutro hidden" id="btnSair">Sair</button></div></div>
+
+  <!-- Carregando -->
+  <section id="tCarregando" class="tela"><div class="spinner"></div><p class="muted" style="text-align:center" id="carregandoTexto">Carregando...</p></section>
+
+  <!-- Login (e-mail + senha do Supabase) -->
+  <section id="tSenha" class="tela hidden card centro">
+    <h1 id="senhaTitulo">Entrar</h1>
+    <p class="muted" id="senhaTexto">Área do Professor: digite seu e-mail e sua senha.</p>
+    <div id="formLogin">
+      <input type="email" id="loginEmail" placeholder="E-mail" autocomplete="username">
+      <input type="password" id="senha" placeholder="Senha" autocomplete="current-password">
+      <button class="btn primary grande" style="width:100%;margin-top:8px" id="btnSenha">Entrar</button>
+      <p class="small muted">Esqueceu a senha? Peça ao administrador da escola para criar uma nova.</p>
+    </div>
+    <div id="formAdmin" class="hidden">
+      <input type="text" id="adminNome" placeholder="Seu nome">
+      <button class="btn verde grande" style="width:100%;margin-top:8px" id="btnAdmin">Ser o administrador da escola</button>
+    </div>
+    <div id="formTrocarSenha" class="hidden">
+      <input type="password" id="novaSenha" placeholder="Nova senha (mínimo 8 caracteres)" autocomplete="new-password">
+      <input type="password" id="novaSenha2" placeholder="Repita a nova senha" autocomplete="new-password">
+      <button class="btn primary grande" style="width:100%;margin-top:8px" id="btnTrocarSenha">Salvar nova senha</button>
+      <button class="link-neutro" id="voltarSenha" style="margin-top:12px">← Voltar</button>
+    </div>
+    <div class="erro" id="senhaErro"></div>
+    <p class="small"><a href="./">← Início</a></p>
+  </section>
+
+  <!-- Meus simulados -->
+  <section id="tPainel" class="tela hidden">
+    <div class="linha" style="margin-bottom:14px"><h1>Meus simulados</h1><button class="btn primary grande" id="btnNovo">+ Novo simulado</button></div>
+    <div id="listaProvas"></div>
+    <details class="card" style="margin-top:24px">
+      <summary>⚙ Configurações</summary>
+      <p class="muted" id="quemSouTexto"></p>
+      <div id="caixaMostrarCerta" class="hidden">
+        <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 0 4px;cursor:pointer">
+          <input type="checkbox" id="mostrarCerta" style="width:20px;height:20px;margin-top:2px">
+          <span><b>Mostrar a resposta certa ao aluno</b> depois que ele envia a prova (vale para a escola toda).<br>
+          <span class="muted small">Desligue em simulados valendo nota, para o gabarito não circular entre as turmas.
+          O aluno continua vendo o que acertou e errou.</span></span>
+        </label>
+        <div class="muted small" id="mostrarCertaStatus"></div>
+      </div>
+      <p><button class="btn secondary" id="btnMinhaSenha">Trocar minha senha</button></p>
+    </details>
+  </section>
+
+  <!-- Novo simulado -->
+  <section id="tNovo" class="tela hidden">
+    <button class="voltar" data-voltar>← Meus simulados</button>
+    <div class="card">
+      <h1 style="margin-bottom:6px">Novo simulado</h1>
+      <p class="muted" style="margin-top:0">Escolha o PDF da prova. O sistema recorta cada questão sozinho.</p>
+      <div id="novoEscolher">
+        <label class="soltar" id="areaSoltar">
+          <input type="file" id="arquivoPdf" accept="application/pdf,.pdf" hidden>
+          <div class="icone">📄</div><b>Clique aqui para escolher o PDF</b><span>ou arraste o arquivo para cá</span>
+        </label>
+      </div>
+      <div id="novoProgresso" class="hidden">
+        <ol class="passos"><li id="passo1">Preparando o leitor de provas</li><li id="passo2">Lendo e recortando as questões</li><li id="passo3">Guardando as imagens</li></ol>
+        <div class="progress"><div class="bar" id="novoBar"></div></div>
+        <div id="novoTexto" style="font-weight:700"></div>
+        <p class="muted small">Não feche esta página. Na primeira vez o passo 1 pode levar até 1 minuto.</p>
+      </div>
+      <div id="novoErro" class="erro-box hidden"></div>
+    </div>
+  </section>
+
+  <!-- Um simulado -->
+  <section id="tProva" class="tela hidden">
+    <button class="voltar" data-voltar>← Meus simulados</button>
+    <div class="card">
+      <div class="linha"><h1 id="provaNome"></h1><span class="chip" id="provaSituacao"></span></div>
+      <div class="muted" id="provaInfo" style="margin-top:6px"></div>
+      <nav class="abas">
+        <button data-aba="gabarito">1. Gabarito</button>
+        <button data-aba="publicar">2. Enviar aos alunos</button>
+        <button data-aba="resultados">3. Resultados</button>
+      </nav>
+    </div>
+    <div id="abaGabarito" class="aba">
+      <div id="gabInfo"></div>
+      <div id="listaQuestoes"></div>
+    </div>
+    <div id="abaPublicar" class="aba hidden card"></div>
+    <div id="abaResultados" class="aba hidden"></div>
+    <div class="perigo">
+      <button class="link-neutro" id="btnRenomear">Mudar o nome</button>
+      <button class="link-perigo" id="btnExcluir">Excluir este simulado</button>
+    </div>
+  </section>
+</div>
+
+<div class="barra-fixa hidden" id="barraGabarito">
+  <div class="dentro">
+    <b id="gabContador"></b><span class="muted" id="gabSalvo"></span>
+    <button class="btn primary" id="gabContinuar">Continuar →</button>
+  </div>
+</div>
+
+<!-- Código Python do extrator (gerado por src/pdf_para_simulado/gerar_apps_script.py) -->
+<script src="extrator.js"></script>
+<!-- Endereço e chave PÚBLICA do banco da escola (montado na publicação: gerar_config.js) -->
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const $ = id => document.getElementById(id);
+const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.5/full/';
+let prova = null;           // simulado aberto na tela
+let gabarito = [];          // cópia editável do gabarito
+const imagens = {};         // "id:numero" -> endereço da imagem (para não baixar de novo)
+
+// ================= utilidades =================
+const pausa = () => new Promise(r => setTimeout(r, 0));
+const doisDigitos = n => String(n).padStart(2, '0');
+const ANULADA = 'X';   // no gabarito: questão anulada (não conta na nota)
+// Número da questão na prova (ex.: ENEM 2º dia: a 1ª questão do simulado é a 91).
+const numProva = n => Number(n) + ((prova && prova.primeira) || 1) - 1;
+const dataBR = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('pt-BR'); };
+function texto(el, t) { el.textContent = t; return el; }
+function criar(tag, classe, conteudo) {
+  const el = document.createElement(tag);
+  if (classe) el.className = classe;
+  if (conteudo !== undefined) el.textContent = conteudo;
+  return el;
+}
+
+// ================= conversa com o banco da escola (Supabase) =================
+// O endereço e a chave PÚBLICA vêm do config.js. Quem decide o que cada um pode ver ou mudar são
+// as regras do próprio banco (supabase/esquema.sql): um professor só enxerga os simulados dele.
+// A "api" abaixo devolve os mesmos formatos que o servidor antigo (Code.gs) devolvia; por isso o
+// resto da página quase não mudou.
+const sb = window.supabase && window.SUPABASE_URL
+  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY) : null;
+let eu = null;          // professor logado: { id, nome, email, papel, ativo, trocar_senha }
+let logado = false;
+const ALUNO_URL = new URL('aluno.html', location.href).href;   // página do aluno deste mesmo site
+// Imagens: WebP no tamanho de tela de celular (economiza o tráfego do plano grátis; PLANO_SUPABASE.md, P1)
+const LARGURA_MAX_IMAGEM = 1100;
+const QUALIDADE_WEBP = 0.8;
+
+const SITUACAO_DE = { rascunho: 'Rascunho', aberta: 'Publicado', encerrada: 'Encerrado' };
+/** Prova aberta mas com o prazo vencido conta como fechada. */
+function situacaoDe(s) {
+  if (s.status === 'aberta' && s.codigo_expira_em && new Date(s.codigo_expira_em) <= new Date()) return 'Encerrado';
+  return SITUACAO_DE[s.status] || s.status;
+}
+const rotuloSituacao = s => ({ Rascunho: 'Rascunho', Publicado: 'Aberta', Encerrado: 'Fechada' })[s] || s;
+
+function erroDe(e) {
+  const m = String((e && e.message) || e || 'erro desconhecido');
+  if (/JWT|not authenticated|refresh token|session/i.test(m)) {
+    if (logado) { logado = false; mostrarLogin('Sua sessão expirou. Entre de novo.'); }
+    return new Error('sua sessão expirou. Entre de novo.');
+  }
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return new Error('sem conexão com o servidor. Verifique a internet.');
+  return new Error(m);
+}
+/** Espera uma consulta do Supabase e devolve os dados (ou lança o erro em português). */
+async function q(consulta) {
+  const { data, error } = await consulta;
+  if (error) throw erroDe(error);
+  return data;
+}
+const contar = r => (r && r[0] && r[0].count) || 0;
+const umaLinha = r => Array.isArray(r) ? (r[0] || null) : r;   // relação 1-para-1 (ex.: o gabarito do simulado)
+const letraValida = l => /^[A-EX]$/.test(String(l || ''));
+const caminhoImg = {};  // "id:numero" -> caminho da imagem na pasta "questoes"
+const urlPublica = caminho => sb.storage.from('questoes').getPublicUrl(caminho).data.publicUrl;
+
+/** JPG que o leitor de provas gera -> WebP menor (ou JPG, no Safari antigo, que não gera WebP). */
+async function paraWebp(base64Jpg) {
+  const bytes = Uint8Array.from(atob(base64Jpg), c => c.charCodeAt(0));
+  const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+  const escala = Math.min(1, LARGURA_MAX_IMAGEM / bmp.width);
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * escala);
+  c.height = Math.round(bmp.height * escala);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  let blob = await new Promise(ok => c.toBlob(ok, 'image/webp', QUALIDADE_WEBP));
+  if (!blob || blob.type !== 'image/webp') blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.85));
+  return blob;
+}
+
+const API = {
+  async painelProfessor() {
+    const lista = await q(sb.from('simulados')
+      .select('id,titulo,total_questoes,status,codigo_expira_em,criado_em,professor_id,gabaritos(respostas),envios(count),professores(nome)')
+      .order('criado_em', { ascending: false }));
+    const cfg = await q(sb.from('config_escola').select('mostrar_certa').eq('id', 1).maybeSingle());
+    return {
+      provas: lista.map(s => {
+        const g = (umaLinha(s.gabaritos) || {}).respostas || [];
+        const dono = umaLinha(s.professores);
+        return {
+          id: s.id, nome: s.titulo, total: s.total_questoes, situacao: situacaoDe(s), criadoEm: s.criado_em,
+          envios: contar(s.envios), faltamGabarito: s.total_questoes - g.slice(0, s.total_questoes).filter(letraValida).length,
+          dono: s.professor_id !== eu.id && dono ? dono.nome : ''
+        };
+      }),
+      mostrarCerta: !cfg || cfg.mostrar_certa !== false
+    };
+  },
+
+  async criarProva(d) {
+    const total = Number(d.total);
+    if (!(total > 0 && total <= 300)) throw new Error('Quantidade de questões inválida.');
+    const alternativas = [], gab = [], materias = [];
+    for (let i = 0; i < total; i++) {
+      alternativas.push((d.alternativas || [])[i] === 4 ? 4 : 5);
+      const l = (d.gabarito || [])[i];
+      gab.push(letraValida(l) ? l : '');
+      materias.push(String((d.materias || [])[i] || ''));
+    }
+    const s = await q(sb.from('simulados').insert({
+      professor_id: eu.id, titulo: String(d.nome || 'Simulado').trim().slice(0, 120) || 'Simulado',
+      total_questoes: total, primeira: Math.max(1, Math.floor(Number(d.primeira) || 1)),
+      num_alternativas: alternativas, materias: materias, avisos: d.avisos || {}
+    }).select('id').single());
+    await q(sb.from('gabaritos').insert({ simulado_id: s.id, respostas: gab }));
+    return s.id;
+  },
+
+  async salvarImagem(id, n, base64) {
+    const blob = await paraWebp(base64);
+    const caminho = id + '/q' + doisDigitos(n) + (blob.type === 'image/webp' ? '.webp' : '.jpg');
+    const { error } = await sb.storage.from('questoes').upload(caminho, blob,
+      { contentType: blob.type, cacheControl: '31536000', upsert: true });
+    if (error) throw erroDe(error);
+    await q(sb.from('imagens_questao').upsert({ simulado_id: id, numero: n, caminho: caminho }));
+    caminhoImg[id + ':' + n] = caminho;
+    return caminho;
+  },
+
+  async concluirImagens(id) {
+    const s = await q(sb.from('simulados').select('total_questoes,imagens_questao(count)').eq('id', id).single());
+    if (contar(s.imagens_questao) !== s.total_questoes) {
+      throw new Error('Nem todas as imagens foram salvas. Tente enviar o PDF de novo.');
+    }
+    return true;
+  },
+
+  async abrirProva(id) {
+    const s = await q(sb.from('simulados')
+      .select('*,gabaritos(respostas),envios(count),imagens_questao(numero,caminho)').eq('id', id).single());
+    (s.imagens_questao || []).forEach(i => { caminhoImg[id + ':' + i.numero] = i.caminho; });
+    return {
+      id: s.id, nome: s.titulo, total: s.total_questoes, situacao: situacaoDe(s), criadoEm: s.criado_em,
+      gabarito: (umaLinha(s.gabaritos) || {}).respostas || [], materias: s.materias || [], avisos: s.avisos || {},
+      alternativas: s.num_alternativas || [], primeira: s.primeira,
+      imagensOk: (s.imagens_questao || []).length === s.total_questoes, envios: contar(s.envios),
+      link: ALUNO_URL + '?prova=' + s.id, codigo: s.codigo_atual, expiraEm: s.codigo_expira_em,
+      apareceNaLista: s.aparece_na_lista
+    };
+  },
+
+  async imagemProfessor(id, n) {
+    let c = caminhoImg[id + ':' + n];
+    if (!c) {
+      const r = await q(sb.from('imagens_questao').select('caminho').eq('simulado_id', id).eq('numero', n).maybeSingle());
+      c = r && r.caminho;
+    }
+    if (!c) throw new Error('imagem não encontrada');
+    return urlPublica(c);
+  },
+
+  async salvarGabarito(id, gab) {
+    const limpo = gab.map(l => String(l || '').toUpperCase()).map(l => letraValida(l) ? l : '');
+    await q(sb.from('gabaritos').upsert({ simulado_id: id, respostas: limpo }));   // o banco recalcula as notas
+    const { count } = await sb.from('envios').select('id', { count: 'exact', head: true }).eq('simulado_id', id);
+    return { faltam: limpo.filter(l => !l).length, corrigidos: count || 0 };
+  },
+
+  async mudarSituacao(id, situacao, horas) {
+    if (situacao === 'Publicado') await q(sb.rpc('abrir_prova', { prova_id: id, horas: horas || 4 }));
+    else await q(sb.rpc('encerrar_prova', { prova_id: id }));
+    return API.abrirProva(id);
+  },
+
+  async aparecerNaLista(id, sim) {
+    await q(sb.from('simulados').update({ aparece_na_lista: !!sim }).eq('id', id));
+    return !!sim;
+  },
+
+  async renomearProva(id, nome) {
+    nome = String(nome || '').trim().slice(0, 120);
+    if (!nome) throw new Error('Digite um nome.');
+    await q(sb.from('simulados').update({ titulo: nome }).eq('id', id));
+    return nome;
+  },
+
+  async resultados(id) {
+    const s = await q(sb.from('simulados').select('total_questoes,gabaritos(respostas)').eq('id', id).single());
+    const total = s.total_questoes;
+    const gab = ((umaLinha(s.gabaritos) || {}).respostas || []).slice(0, total);
+    const envios = await q(sb.from('envios').select('id,nome,turma,respostas,acertos,validas,nota,corrigido,quando')
+      .eq('simulado_id', id).order('quando'));
+    const saida = { alunos: [], questoes: [], envios: envios, gabarito: gab,
+                    gabaritoCompleto: gab.length === total && gab.every(letraValida) };
+    if (!envios.length) return saida;
+    const contagem = [];
+    for (let i = 0; i < total; i++) contagem.push({ numero: i + 1, acertos: 0, marcadas: {} });
+    envios.forEach(e => {
+      saida.alunos.push({ id: e.id, data: e.quando, nome: e.nome, turma: e.turma,
+        acertos: e.corrigido ? e.acertos : '', validas: e.validas, nota: e.corrigido ? Number(e.nota) : '',
+        situacao: e.corrigido ? 'Corrigido' : 'Aguardando gabarito' });
+      for (let i = 0; i < total; i++) {
+        const r = (e.respostas || [])[i] || '';
+        const c = contagem[i];
+        c.marcadas[r || '—'] = (c.marcadas[r || '—'] || 0) + 1;
+        if (r && r === gab[i]) c.acertos++;
+      }
+    });
+    saida.questoes = contagem.map(c => ({ numero: c.numero, correta: gab[c.numero - 1] || '',
+      percentual: Math.round(c.acertos / envios.length * 100), marcadas: c.marcadas }));
+    return saida;
+  },
+
+  async apagarEnvio(envioId) {
+    await q(sb.from('envios').delete().eq('id', envioId));
+    return true;
+  },
+
+  async excluirProva(id) {
+    const imgs = await q(sb.from('imagens_questao').select('caminho').eq('simulado_id', id));
+    if (imgs.length) {
+      const { error } = await sb.storage.from('questoes').remove(imgs.map(i => i.caminho));
+      if (error) throw erroDe(error);
+    }
+    await q(sb.from('simulados').delete().eq('id', id));   // apaga junto: gabarito, imagens_questao e envios
+    return true;
+  },
+
+  async configurarMostrarCerta(sim) {
+    await q(sb.from('config_escola').update({ mostrar_certa: !!sim }).eq('id', 1));
+    return !!sim;
+  }
+};
+/** Mesmo jeito de chamar do app antigo: api('nomeDaFuncao', ...). */
+function api(funcao, ...args) {
+  if (!API[funcao]) return Promise.reject(new Error('função "' + funcao + '" não existe'));
+  return Promise.resolve().then(() => API[funcao](...args)).catch(e => { throw e instanceof Error ? e : erroDe(e); });
+}
+
+/** Carrega um programa de outro site (ex.: leitor de Excel) uma vez só. */
+function carregarJs(src, global) {
+  if (window[global]) return Promise.resolve(window[global]);
+  return new Promise((ok, falha) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => ok(window[global]);
+    s.onerror = () => falha(new Error('não consegui baixar ' + src + '. Verifique a internet.'));
+    document.head.append(s);
+  });
+}
+const carregarXLSX = () => carregarJs('https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js', 'XLSX');
+
+function mostrarTela(nome) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.add('hidden'));
+  $('t' + nome).classList.remove('hidden');
+  $('barraGabarito').classList.add('hidden');
+  $('btnSair').classList.toggle('hidden', !logado || nome === 'Senha');
+  window.scrollTo(0, 0);
+}
+function carregando(msg) { $('carregandoTexto').textContent = msg || 'Carregando...'; mostrarTela('Carregando'); }
+
+// ================= login (e-mail + senha do Supabase) =================
+function mostrarFormulario(qual) {
+  ['formLogin', 'formAdmin', 'formTrocarSenha'].forEach(f => $(f).classList.toggle('hidden', f !== qual));
+  $('senhaErro').textContent = '';
+}
+function mostrarLogin(msg) {
+  logado = false;
+  eu = null;
+  $('quemSou').textContent = '';
+  mostrarTela('Senha');
+  mostrarFormulario('formLogin');
+  $('senhaTitulo').textContent = 'Entrar';
+  $('senhaTexto').textContent = 'Área do Professor: digite seu e-mail e sua senha.';
+  $('senhaErro').textContent = msg || '';
+  setTimeout(() => ($('loginEmail').value ? $('senha') : $('loginEmail')).focus(), 50);
+}
+async function entrar() {
+  const email = $('loginEmail').value.trim(), senha = $('senha').value;
+  if (!email || !senha) { $('senhaErro').textContent = 'Digite o e-mail e a senha.'; return; }
+  $('btnSenha').disabled = true;
+  $('senhaErro').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: email, password: senha });
+  $('btnSenha').disabled = false;
+  if (error) {
+    $('senhaErro').textContent = /invalid/i.test(error.message) ? 'E-mail ou senha incorretos.' : erroDe(error).message;
+    return;
+  }
+  $('senha').value = '';
+  depoisDoLogin();
+}
+/** Quem entrou? Professor cadastrado, a 1ª conta da escola (vira administrador) ou conta sem cadastro. */
+async function depoisDoLogin() {
+  carregando('Entrando...');
+  const { data: dadosUsuario } = await sb.auth.getUser();
+  const user = dadosUsuario && dadosUsuario.user;
+  if (!user) return mostrarLogin();
+  const { data: perfil, error } = await sb.from('professores')
+    .select('id,nome,email,papel,ativo,trocar_senha').eq('id', user.id).maybeSingle();
+  if (error) return mostrarLogin('Erro: ' + erroDe(error).message);
+  if (!perfil) {
+    const { data: temAdmin } = await sb.rpc('escola_tem_admin');
+    mostrarTela('Senha');
+    $('btnSair').classList.remove('hidden');
+    if (!temAdmin) {
+      mostrarFormulario('formAdmin');
+      $('senhaTitulo').textContent = 'Primeiro acesso';
+      $('senhaTexto').textContent = 'Esta escola ainda não tem administrador. Como esta é a primeira conta, ' +
+        'ela vai administrar a escola (cadastrar os professores e ver todos os simulados).';
+      $('adminNome').focus();
+    } else {
+      mostrarFormulario('');
+      $('senhaTitulo').textContent = 'Conta sem cadastro';
+      $('senhaTexto').textContent = 'Esta conta (' + user.email + ') não está cadastrada como professor desta escola. ' +
+        'Fale com o administrador.';
+    }
+    return;
+  }
+  if (!perfil.ativo) {
+    await sb.auth.signOut();
+    return mostrarLogin('Esta conta foi desativada pelo administrador da escola.');
+  }
+  eu = perfil;
+  logado = true;
+  $('quemSou').textContent = perfil.nome + (perfil.papel === 'admin' ? ' (administrador)' : '');
+  if (perfil.trocar_senha) return pedirNovaSenha(true);
+  abrirPainel();
+}
+function pedirNovaSenha(obrigatoria) {
+  mostrarTela('Senha');
+  mostrarFormulario('formTrocarSenha');
+  $('btnSair').classList.remove('hidden');
+  $('senhaTitulo').textContent = obrigatoria ? 'Crie a sua senha' : 'Trocar minha senha';
+  $('senhaTexto').textContent = obrigatoria
+    ? 'Você entrou com uma senha provisória. Agora crie a sua (mínimo 8 caracteres).'
+    : 'Digite a nova senha (mínimo 8 caracteres).';
+  $('voltarSenha').classList.toggle('hidden', !!obrigatoria);
+  $('novaSenha').focus();
+}
+async function trocarSenha() {
+  const s1 = $('novaSenha').value, s2 = $('novaSenha2').value;
+  if (s1.length < 8) { $('senhaErro').textContent = 'A senha precisa ter pelo menos 8 caracteres.'; return; }
+  if (s1 !== s2) { $('senhaErro').textContent = 'As duas senhas não são iguais.'; return; }
+  $('btnTrocarSenha').disabled = true;
+  const { error } = await sb.auth.updateUser({ password: s1 });
+  $('btnTrocarSenha').disabled = false;
+  if (error) {
+    $('senhaErro').textContent = /different|same/i.test(error.message)
+      ? 'A nova senha precisa ser diferente da atual.' : erroDe(error).message;
+    return;
+  }
+  await sb.rpc('senha_trocada');
+  $('novaSenha').value = $('novaSenha2').value = '';
+  eu.trocar_senha = false;
+  alert('Pronto! Sua senha foi trocada.');
+  abrirPainel();
+}
+async function serAdmin() {
+  const nome = $('adminNome').value.trim();
+  if (!nome) { $('senhaErro').textContent = 'Digite o seu nome.'; return; }
+  $('btnAdmin').disabled = true;
+  const { error } = await sb.rpc('assumir_administracao', { nome_admin: nome });
+  $('btnAdmin').disabled = false;
+  if (error) { $('senhaErro').textContent = erroDe(error).message; return; }
+  depoisDoLogin();
+}
+$('btnSenha').onclick = entrar;
+$('senha').onkeydown = $('loginEmail').onkeydown = e => { if (e.key === 'Enter') entrar(); };
+$('btnTrocarSenha').onclick = trocarSenha;
+$('novaSenha2').onkeydown = e => { if (e.key === 'Enter') trocarSenha(); };
+$('btnAdmin').onclick = serAdmin;
+$('voltarSenha').onclick = () => abrirPainel();
+$('btnMinhaSenha').onclick = () => pedirNovaSenha(false);
+$('btnSair').onclick = async () => { await sb.auth.signOut(); mostrarLogin(); };
+
+async function iniciar() {
+  if (!sb) {
+    mostrarTela('Senha');
+    mostrarFormulario('');
+    $('senhaTitulo').textContent = 'Site não configurado';
+    $('senhaTexto').textContent = 'Falta o endereço do banco da escola (SUPABASE_URL e SUPABASE_KEY na hospedagem).';
+    return;
+  }
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) depoisDoLogin(); else mostrarLogin();
+}
+
+// ================= meus simulados =================
+function abrirPainel() {
+  carregando('Carregando seus simulados...');
+  api('painelProfessor').then(dados => {
+    mostrarTela('Painel');
+    const admin = eu.papel === 'admin';
+    $('quemSouTexto').textContent = 'Você entrou como ' + eu.nome + ' (' + eu.email + ')' +
+      (admin ? ' · administrador da escola: você vê os simulados de todos os professores.' : '.');
+    $('caixaMostrarCerta').classList.toggle('hidden', !admin);
+    $('mostrarCerta').checked = dados.mostrarCerta !== false;
+    const lista = $('listaProvas');
+    lista.innerHTML = '';
+    if (!dados.provas.length) {
+      const vazio = criar('div', 'card');
+      vazio.innerHTML = '<h2>Você ainda não tem simulados</h2><p class="muted">Clique em <b>+ Novo simulado</b> e escolha o PDF da prova. O sistema faz o resto.</p>';
+      lista.append(vazio);
+    }
+    dados.provas.forEach(p => {
+      const b = criar('button', 'prova-item');
+      const linha = criar('div', 'linha');
+      linha.append(criar('b', '', p.nome), criar('span', 'chip ' + p.situacao, rotuloSituacao(p.situacao)));
+      const info = criar('div', 'muted', p.total + ' questões · criado em ' + dataBR(p.criadoEm) +
+        ' · ' + p.envios + (p.envios === 1 ? ' aluno respondeu' : ' alunos responderam') +
+        (p.dono ? ' · de ' + p.dono : ''));
+      b.append(linha, info);
+      if (p.faltamGabarito > 0) b.append(criar('div', 'small', '⚠ Faltam ' + p.faltamGabarito + ' respostas no gabarito'));
+      b.onclick = () => abrirProva(p.id);
+      lista.append(b);
+    });
+  }).catch(err => { if (logado) { mostrarTela('Painel'); alert('Erro: ' + err.message); } });
+}
+$('mostrarCerta').onchange = () => {
+  const ligado = $('mostrarCerta').checked;
+  $('mostrarCertaStatus').textContent = 'Salvando...';
+  api('configurarMostrarCerta', ligado)
+    .then(() => { $('mostrarCertaStatus').textContent = ligado ? 'Os alunos verão a resposta certa.' : 'Os alunos verão só se acertaram ou erraram.'; })
+    .catch(err => { $('mostrarCerta').checked = !ligado; $('mostrarCertaStatus').textContent = err.message; });
+};
+document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => { salvarGabaritoAgora(); abrirPainel(); });
+
+// ================= novo simulado =================
+$('btnNovo').onclick = () => {
+  mostrarTela('Novo');
+  $('novoEscolher').classList.remove('hidden');
+  $('novoProgresso').classList.add('hidden');
+  $('novoErro').classList.add('hidden');
+  $('arquivoPdf').value = '';
+  // já começa a preparar o leitor enquanto o professor procura o arquivo (no Worker; só usa a
+  // própria página se o navegador não tiver Worker, para não baixar o Python duas vezes)
+  (usarWorker ? prepararWorker() : carregarPyodide()).catch(() => {});
+};
+$('arquivoPdf').onchange = e => { if (e.target.files[0]) processarPdf(e.target.files[0]); };
+const area = $('areaSoltar');
+area.ondragover = e => { e.preventDefault(); area.classList.add('arrastando'); };
+area.ondragleave = () => area.classList.remove('arrastando');
+area.ondrop = e => {
+  e.preventDefault();
+  area.classList.remove('arrastando');
+  if (e.dataTransfer.files[0]) processarPdf(e.dataTransfer.files[0]);
+};
+
+function passo(n) {
+  for (let i = 1; i <= 3; i++) $('passo' + i).className = i < n ? 'feito' : (i === n ? 'ativo' : '');
+}
+function progresso(feitas, total, msg) {
+  $('novoBar').style.width = (total ? Math.round(feitas / total * 100) : 0) + '%';
+  $('novoTexto').textContent = msg;
+}
+function erroNovo(html) {
+  $('novoProgresso').classList.add('hidden');
+  $('novoEscolher').classList.remove('hidden');
+  $('arquivoPdf').value = '';
+  $('novoErro').innerHTML = html;
+  $('novoErro').classList.remove('hidden');
+}
+
+async function processarPdf(arquivo) {
+  if (!/\.pdf$/i.test(arquivo.name) && arquivo.type !== 'application/pdf') {
+    return erroNovo('<b>Este arquivo não é um PDF.</b><br>Escolha o arquivo da prova em PDF.');
+  }
+  $('novoErro').classList.add('hidden');
+  $('novoEscolher').classList.add('hidden');
+  $('novoProgresso').classList.remove('hidden');
+
+  // 1) Leitor de provas (Python rodando no navegador) e 2) recorte das questões
+  passo(1);
+  progresso(0, 1, 'Preparando o leitor de provas...');
+  let r;
+  try {
+    r = await lerProva(arquivo);
+  } catch (err) {
+    const preparando = $('passo1').className === 'ativo';
+    return erroNovo((preparando
+      ? '<b>Não foi possível preparar o leitor de provas.</b><br>Verifique a internet e tente de novo.'
+      : '<b>Não consegui ler este PDF.</b><br>Confira se é o arquivo certo da prova.') +
+      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
+  }
+  if (!r || !r.ok) {
+    // o leitor diz o motivo (ex.: prova de somatória, PDF escaneado); senão, a mensagem geral
+    return erroNovo('<b>Não encontrei questões neste PDF.</b><br>' + escapar((r && r.erro) || '') +
+      '<br><span class="small">Funcionam provas em PDF com texto (baixadas do site oficial), com questões ' +
+      'de alternativas (A a E). Provas escaneadas (fotos) não podem ser lidas automaticamente.</span>');
+  }
+
+  // 3) Envio das imagens para o banco da escola (Supabase), já em WebP
+  passo(3);
+  const total = r.questoes.length;
+  const avisos = {};
+  r.questoes.forEach(q => { if (q.avisos.length) avisos[q.numero] = q.avisos; });
+  const gerais = r.avisos_gerais.filter(a => a.indexOf('REVISAR') !== -1);
+  if (gerais.length) avisos.geral = gerais;
+
+  let provaId = null;
+  try {
+    progresso(0, total, 'Criando o simulado...');
+    // Nome = título da prova + dia ("… · 2ª série · 1º dia"), se o título ainda não tiver o dia.
+    const titulo = r.titulo || arquivo.name.replace(/\.pdf$/i, '');
+    const nome = r.dia && titulo.toLowerCase().indexOf(r.dia.toLowerCase()) === -1 ? titulo + ' · ' + r.dia : titulo;
+    provaId = await api('criarProva', {
+      nome: nome,
+      total: total,
+      materias: r.questoes.map(q => q.assunto),
+      alternativas: r.questoes.map(q => q.num_alternativas),
+      primeira: r.primeira || 1,
+      gabarito: r.gabarito || [],
+      relatorio: r.relatorio,
+      avisos: avisos
+    });
+    const ids = new Array(total);
+    let feitas = 0;
+    await emParalelo(r.questoes, 4, async q => {
+      ids[q.numero - 1] = await tentarDeNovo(() => api('salvarImagem', provaId, q.numero, q.jpg), 3);
+      imagens[provaId + ':' + q.numero] = 'data:image/jpeg;base64,' + q.jpg;
+      feitas++;
+      progresso(feitas, total, 'Guardando a imagem ' + feitas + ' de ' + total + '...');
+    });
+    await api('concluirImagens', provaId, ids);
+  } catch (err) {
+    if (provaId) api('excluirProva', provaId).catch(() => {});   // não deixa um simulado pela metade
+    return erroNovo('<b>Houve um problema ao guardar as imagens.</b><br>Tente de novo.' +
+      '<br><span class="small">Detalhe técnico: ' + escapar(err.message) + '</span>');
+  }
+
+  abrirProva(provaId, { novo: true, gabaritoDoPdf: !!r.gabarito, aba: 'gabarito' });
+}
+
+/** Roda o extrator Python, atualizando a barra a cada questão recortada. */
+async function recortar(py, arquivo) {
+  const bytes = new Uint8Array(await arquivo.arrayBuffer());
+  py.globals.set('pdf_entrada', bytes);
+  py.globals.set('nome_pdf', arquivo.name);
+  const etapas = py.runPython('etapas_js(pdf_entrada.to_py(), nome_pdf)');
+  let resultado = null;
+  try {
+    for (let p = etapas.next(); !p.done; p = etapas.next()) {
+      const e = JSON.parse(p.value);
+      if (e[0] === 'fim') resultado = e[1];
+      else progresso(e[1], e[2], e[3]);
+      await pausa();   // deixa o navegador desenhar a barra de progresso
+    }
+  } finally {
+    etapas.destroy();
+    py.globals.delete('pdf_entrada');
+  }
+  return resultado;
+}
+
+/** Executa tarefas com no máximo "limite" ao mesmo tempo. */
+async function emParalelo(itens, limite, tarefa) {
+  let proximo = 0;
+  const trabalhadores = Array.from({ length: Math.min(limite, itens.length) }, async () => {
+    while (proximo < itens.length) await tarefa(itens[proximo++]);
+  });
+  await Promise.all(trabalhadores);
+}
+async function tentarDeNovo(fn, vezes) {
+  for (let i = 1; ; i++) {
+    try { return await fn(); } catch (err) {
+      if (i >= vezes || String(err.message).indexOf('SESSAO_EXPIRADA') !== -1) throw err;
+      await new Promise(r => setTimeout(r, 1500 * i));
+    }
+  }
+}
+function escapar(s) { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
+
+// ---- Pyodide: Python dentro do navegador (carregado uma vez só) ----
+// Preparação do Python (igual no Web Worker e no modo antigo): o extrator e o "etapas_js", que
+// devolve cada etapa em JSON (as imagens em base64).
+const PREPARO_PY = [
+  'import sys, json, base64',
+  'sys.path.insert(0, "/home/pyodide")',
+  'import extrair_questoes as E',
+  'def etapas_js(pdf, nome):',
+  '    for etapa in E.extrair_em_etapas(pdf, nome):',
+  '        if etapa[0] == "fim":',
+  '            r = etapa[1]',
+  '            for q in r.get("questoes", []):',
+  '                q["jpg"] = base64.b64encode(q["jpg"]).decode("ascii")',
+  '            yield json.dumps(["fim", r])',
+  '        else:',
+  '            yield json.dumps(list(etapa))',
+  '# Texto de um PDF (gabarito). Se não tiver texto (escaneado), devolve as 3 primeiras páginas como imagem.',
+  'def texto_pdf(pdf):',
+  '    import pymupdf',
+  '    doc = pymupdf.open(stream=bytes(pdf), filetype="pdf")',
+  '    texto = "\\n".join(p.get_text() for p in doc)',
+  '    imagens = []',
+  '    if len(texto.strip()) < 20:',
+  '        for p in list(doc)[:3]:',
+  '            imagens.append(base64.b64encode(p.get_pixmap(dpi=200).tobytes("png")).decode("ascii"))',
+  '    return json.dumps({"texto": texto, "imagens": imagens})',
+].join('\n');
+const fonteExtrator = () => new TextDecoder().decode(Uint8Array.from(atob(EXTRATOR_PY_B64), c => c.charCodeAt(0)));
+
+// Web Worker: o Python roda num "segundo funcionário" do navegador, separado da página.
+// Assim a tela não congela enquanto a prova é lida (antes, uma prova grande deixava a página
+// "sem resposta" por vários segundos). Se o navegador não deixar criar o Worker, usa o modo antigo.
+const CODIGO_WORKER = [
+  'let py = null;',
+  'onmessage = async (e) => {',
+  '  const m = e.data;',
+  '  try {',
+  '    if (m.tipo === "preparar") {',
+  '      importScripts(m.url + "pyodide.js");',
+  '      py = await loadPyodide({ indexURL: m.url });',
+  '      await py.loadPackage("pymupdf");',
+  '      py.FS.writeFile("/home/pyodide/extrair_questoes.py", m.fonte);',
+  '      py.runPython(m.preparo);',
+  '      postMessage({ tipo: "pronto" });',
+  '    } else if (m.tipo === "extrair") {',
+  '      py.globals.set("pdf_entrada", new Uint8Array(m.bytes));',
+  '      py.globals.set("nome_pdf", m.nome);',
+  '      const etapas = py.runPython("etapas_js(pdf_entrada.to_py(), nome_pdf)");',
+  '      try {',
+  '        for (let p = etapas.next(); !p.done; p = etapas.next()) postMessage({ tipo: "etapa", etapa: p.value });',
+  '      } finally {',
+  '        etapas.destroy();',
+  '        py.globals.delete("pdf_entrada");',
+  '      }',
+  '      postMessage({ tipo: "acabou" });',
+  '    } else if (m.tipo === "texto_pdf") {',
+  '      py.globals.set("pdf_entrada", new Uint8Array(m.bytes));',
+  '      const r = py.runPython("texto_pdf(pdf_entrada.to_py())");',
+  '      py.globals.delete("pdf_entrada");',
+  '      postMessage({ tipo: "texto", r: r });',
+  '    }',
+  '  } catch (err) {',
+  '    postMessage({ tipo: "erro", msg: String((err && err.message) || err) });',
+  '  }',
+  '};',
+].join('\n');
+let workerPronto = null;
+function prepararWorker() {
+  if (!workerPronto) {
+    workerPronto = new Promise((ok, falha) => {
+      let w;
+      try {
+        w = new Worker(URL.createObjectURL(new Blob([CODIGO_WORKER], { type: 'text/javascript' })));
+      } catch (err) { return falha(err); }
+      w.onmessage = e => {
+        if (e.data.tipo === 'pronto') ok(w);
+        else if (e.data.tipo === 'erro') falha(new Error(e.data.msg));
+      };
+      w.onerror = e => { if (e.preventDefault) e.preventDefault(); falha(new Error(e.message || 'o leitor parou')); };
+      w.postMessage({ tipo: 'preparar', url: PYODIDE_URL, fonte: fonteExtrator(), preparo: PREPARO_PY });
+    });
+    workerPronto.catch(() => { workerPronto = null; });
+  }
+  return workerPronto;
+}
+/** Lê a prova no Worker, atualizando a barra a cada etapa. */
+async function recortarNoWorker(w, arquivo) {
+  const bytes = await arquivo.arrayBuffer();
+  return new Promise((ok, falha) => {
+    let resultado = null;
+    w.onmessage = e => {
+      const m = e.data;
+      if (m.tipo === 'etapa') {
+        const etapa = JSON.parse(m.etapa);
+        if (etapa[0] === 'fim') resultado = etapa[1];
+        else progresso(etapa[1], etapa[2], etapa[3]);
+      } else if (m.tipo === 'acabou') ok(resultado);
+      else if (m.tipo === 'erro') falha(new Error(m.msg));
+    };
+    w.onerror = e => {
+      if (e.preventDefault) e.preventDefault();
+      workerPronto = null;   // o Worker quebrou (ex.: memória): na próxima vez cria outro
+      falha(new Error(e.message || 'o leitor parou'));
+    };
+    w.postMessage({ tipo: 'extrair', bytes: bytes, nome: arquivo.name }, [bytes]);
+  });
+}
+/** Prepara o leitor (Worker; se não der, o modo antigo) e lê a prova. */
+let usarWorker = typeof Worker !== 'undefined';
+async function lerProva(arquivo) {
+  if (usarWorker) {
+    let w = null;
+    try { w = await prepararWorker(); } catch (err) {
+      usarWorker = false;   // navegador sem Worker (ou bloqueado): segue no modo antigo
+      console.warn('Web Worker indisponível, usando o modo antigo:', err);
+    }
+    if (w) { passo(2); return recortarNoWorker(w, arquivo); }
+  }
+  const py = await carregarPyodide();
+  passo(2);
+  return recortar(py, arquivo);
+}
+
+let pyodidePronto = null;
+function carregarScript(src) {
+  return new Promise((ok, falha) => {
+    if (window.loadPyodide) return ok();
+    const s = document.createElement('script');
+    s.src = src; s.onload = ok; s.onerror = () => falha(new Error('não consegui baixar ' + src));
+    document.head.append(s);
+  });
+}
+function carregarPyodide() {
+  if (!pyodidePronto) {
+    pyodidePronto = (async () => {
+      await carregarScript(PYODIDE_URL + 'pyodide.js');
+      const py = await loadPyodide({ indexURL: PYODIDE_URL });
+      await py.loadPackage('pymupdf');
+      py.FS.writeFile('/home/pyodide/extrair_questoes.py', fonteExtrator());
+      py.runPython(PREPARO_PY);
+      return py;
+    })();
+    pyodidePronto.catch(() => { pyodidePronto = null; });   // se falhar, tenta de novo na próxima vez
+  }
+  return pyodidePronto;
+}
+
+// ================= um simulado =================
+function abrirProva(id, opcoes) {
+  opcoes = opcoes || {};
+  carregando('Abrindo o simulado...');
+  api('abrirProva', id).then(p => {
+    prova = p;
+    prova.novo = !!opcoes.novo;
+    prova.gabaritoDoPdf = !!opcoes.gabaritoDoPdf;
+    gabarito = p.gabarito.slice();
+    while (gabarito.length < p.total) gabarito.push('');
+    mostrarTela('Prova');
+    desenharCabecalho();
+    const faltam = gabarito.filter(l => !l).length;
+    abrirAba(opcoes.aba || (p.situacao === 'Rascunho' ? (faltam ? 'gabarito' : 'publicar') : (p.envios ? 'resultados' : 'publicar')));
+  }).catch(err => { if (logado) { alert('Erro: ' + err.message); abrirPainel(); } });
+}
+function desenharCabecalho() {
+  $('provaNome').textContent = prova.nome;
+  $('provaSituacao').textContent = rotuloSituacao(prova.situacao);
+  $('provaSituacao').className = 'chip ' + prova.situacao;
+  $('provaInfo').textContent = prova.total + ' questões · criado em ' + dataBR(prova.criadoEm);
+}
+document.querySelectorAll('.abas button').forEach(b => b.onclick = () => abrirAba(b.dataset.aba));
+function abrirAba(nome) {
+  salvarGabaritoAgora();
+  document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativa', b.dataset.aba === nome));
+  ['gabarito', 'publicar', 'resultados'].forEach(a =>
+    $('aba' + a[0].toUpperCase() + a.slice(1)).classList.toggle('hidden', a !== nome));
+  $('barraGabarito').classList.toggle('hidden', nome !== 'gabarito');
+  if (nome === 'gabarito') desenharGabarito();
+  if (nome === 'publicar') desenharPublicar();
+  if (nome === 'resultados') desenharResultados();
+}
+
+// ---------- aba 1: gabarito ----------
+function desenharGabarito() {
+  const info = $('gabInfo');
+  info.innerHTML = '';
+  if (prova.novo) {
+    info.append(criar('div', 'ok-box', '✅ Pronto! As ' + prova.total + ' questões foram recortadas e guardadas. ' +
+      'Agora marque a resposta certa de cada questão (ou envie o arquivo do gabarito logo abaixo).'));
+  }
+  if (prova.gabaritoDoPdf) info.append(criar('div', 'ok-box', 'O gabarito estava no PDF e já veio marcado. É só conferir.'));
+  if (!prova.imagensOk) info.append(criar('div', 'alerta-box', '⚠ As imagens deste simulado não foram guardadas por completo. Exclua-o e envie o PDF de novo.'));
+  (prova.avisos.geral || []).forEach(a => info.append(criar('div', 'alerta-box', '⚠ Confira: ' + a.replace(' REVISAR.', ''))));
+  info.append(cartaoGabaritoArquivo());
+
+  // Uma linha compacta por questão: número, matéria e A B C D E (sem o enunciado).
+  // A imagem só aparece se o professor clicar em "ver questão".
+  const lista = $('listaQuestoes');
+  lista.innerHTML = '';
+  lista.className = 'qgrade';
+  for (let n = 1; n <= prova.total; n++) {
+    const linha = criar('div', 'qlinha');
+    linha.id = 'qc' + n;
+    const topo = criar('div', 'qtopo');
+    topo.append(criar('b', '', 'Questão ' + doisDigitos(numProva(n))));
+    if (prova.materias[n - 1]) topo.append(criar('span', 'tag', prova.materias[n - 1]));
+    const ver = criar('button', 'ver', 'ver questão');
+    topo.append(ver);
+    linha.append(topo);
+    (prova.avisos[n] || []).forEach(a => linha.append(criar('div', 'qaviso', '⚠ Confira esta questão: ' + a)));
+    // só as letras que a questão tem: A-D ou A-E (contadas pelo extrator)
+    const qtd = (prova.alternativas || [])[n - 1] === 4 ? 4 : 5;
+    const letras = criar('div', 'letras');
+    letras.style.gridTemplateColumns = 'repeat(' + qtd + ',1fr)';
+    LETRAS.slice(0, qtd).forEach(l => {
+      const b = criar('button', 'letra', l);
+      b.onclick = () => marcar(n, l);
+      letras.append(b);
+    });
+    linha.append(letras);
+    // Questão anulada (pela banca ou pelo professor): não conta na nota.
+    const anular = criar('button', 'anular', 'Anular questão');
+    anular.onclick = () => marcar(n, gabarito[n - 1] === ANULADA ? '' : ANULADA);
+    linha.append(anular);
+    const img = criar('div', 'qimg hidden', 'Carregando imagem...');
+    img.dataset.n = n;
+    linha.append(img);
+    ver.onclick = () => {
+      const abrir = img.classList.contains('hidden');
+      img.classList.toggle('hidden', !abrir);
+      linha.classList.toggle('aberta', abrir);
+      ver.textContent = abrir ? 'esconder' : 'ver questão';
+      if (abrir && !img.querySelector('img')) mostrarImagem(img);
+    };
+    lista.append(linha);
+    pintarQuestao(n);
+  }
+  atualizarContador();
+}
+// ---------- gabarito a partir de um arquivo (foto, PDF ou texto) ----------
+function cartaoGabaritoArquivo() {
+  const card = criar('div', 'card');
+  card.append(criar('b', '', '📎 Já tem o gabarito pronto?'));
+  card.append(criar('p', 'muted', 'Envie uma foto, um PDF, uma planilha (Excel) ou um arquivo de texto com as respostas. ' +
+    'O sistema marca as letras sozinho e você só confere.'));
+  const rotulo = criar('label', 'btn secondary', 'Enviar arquivo do gabarito');
+  const input = criar('input');
+  input.type = 'file';
+  input.accept = 'image/*,.pdf,application/pdf,.xlsx,.xls,.xlsm,.ods,.txt,.csv,text/plain';
+  input.hidden = true;
+  rotulo.append(input);
+  const status = criar('div');
+  status.style.marginTop = '12px';
+  input.onchange = () => { if (input.files[0]) lerArquivoGabarito(input.files[0], status, rotulo); input.value = ''; };
+  card.append(rotulo, status);
+  return card;
+}
+
+async function lerArquivoGabarito(arquivo, status, rotulo) {
+  status.innerHTML = '';
+  status.append(criar('div', 'muted', '⏳ Lendo o gabarito... (fotos, PDFs e planilhas levam alguns segundos)'));
+  rotulo.classList.add('hidden');
+  try {
+    let lido;
+    if (/\.(heic|heif)$/i.test(arquivo.name) || /heic|heif/i.test(arquivo.type)) {
+      throw new Error('fotos do iPhone no formato HEIC não podem ser lidas. Tire um print da foto ' +
+        '(ou, no iPhone, em Ajustes > Câmera > Formatos, escolha "Mais compatível") e envie de novo.');
+    }
+    if (/\.(txt|csv)$/i.test(arquivo.name) || /^text\//.test(arquivo.type)) {
+      lido = await lerTextoLocal(arquivo);
+    } else {
+      lido = await lerArquivoNoNavegador(arquivo, status);
+    }
+    aplicarGabaritoLido(interpretarGabarito(lido, prova.total), lido, status);
+  } catch (err) {
+    status.innerHTML = '';
+    status.append(criar('div', 'erro-box', 'Não consegui ler esse arquivo: ' + err.message));
+  } finally {
+    rotulo.classList.remove('hidden');
+  }
+}
+
+function aplicarGabaritoLido(r, lido, status) {
+  status.innerHTML = '';
+  if (r.pareceProva) {
+    const caixa = criar('div', 'erro-box', '');
+    caixa.append(criar('b', '', 'Esse arquivo parece ser a prova, não o gabarito.'),
+      criar('div', '', 'Ele tem as perguntas e as alternativas, mas não diz qual é a certa. ' +
+        'Envie o arquivo do gabarito (a folha com as respostas) ou marque as letras abaixo.'));
+    status.append(caixa, detalhesLidos(lido, null));
+    return;
+  }
+  if (!r.conjuntos.length) {
+    const caixa = criar('div', 'erro-box', 'Não encontrei respostas nesse arquivo. Se for foto, confira se está ' +
+      'nítida e mostra os números das questões e as letras. Você também pode marcar as letras abaixo.');
+    status.append(caixa, detalhesLidos(lido, null));
+    return;
+  }
+  if (r.conjuntos.length === 1) return usarConjunto(r.conjuntos[0], lido, status);
+
+  // A folha tem vários gabaritos (ex.: 1ª e 2ª série, 1º e 2º dia): o professor escolhe.
+  const s = sugerirConjunto(r.conjuntos, prova.total, prova.materias, prova.nome);
+  const caixa = criar('div', 'alerta-box');
+  caixa.append(criar('b', '', 'Este arquivo tem ' + r.conjuntos.length + ' gabaritos diferentes. Qual é o desta prova?'));
+  caixa.append(criar('div', 'small', s.recomendado !== -1
+    ? 'O botão verde é o que mais combina com esta prova (número de questões, matérias e série). Confira antes de clicar.'
+    : 'Esta prova tem ' + prova.total + ' questões. Escolha o gabarito certo pelo nome.'));
+  s.ordem.forEach(i => {
+    const c = r.conjuntos[i];
+    const sugerido = i === s.recomendado;
+    const b = criar('button', 'btn ' + (sugerido ? 'verde' : 'secondary'),
+      c.rotulo + ' — ' + c.quantidade + ' respostas' + (sugerido ? '  ✓ sugerido' : ''));
+    b.style.display = 'block';
+    b.style.width = '100%';
+    b.style.marginTop = '8px';
+    b.style.textAlign = 'left';
+    b.onclick = () => usarConjunto(c, lido, status);
+    caixa.append(b);
+  });
+  status.append(caixa, detalhesLidos(lido, null));
+}
+
+function usarConjunto(c, lido, status) {
+  // O arquivo usa o número da prova (ENEM 2º dia: 91 a 180); o simulado conta de 1.
+  const desloc = (prova.primeira || 1) - 1;
+  if (desloc) {
+    const r = {};
+    Object.keys(c.respostas).forEach(n => { r[Number(n) - desloc] = c.respostas[n]; });
+    c = Object.assign({}, c, { respostas: r, anuladas: (c.anuladas || []).map(n => n - desloc) });
+  }
+  const qtdAlt = n => ((prova.alternativas || [])[n - 1] === 4 ? 4 : 5);
+  // letra que não existe na questão (ex.: "E" numa questão A-D): não marca e avisa
+  const impossiveis = Object.keys(c.respostas).map(Number)
+    .filter(n => n >= 1 && n <= prova.total && LETRAS.indexOf(c.respostas[n]) >= qtdAlt(n));
+  const numeros = Object.keys(c.respostas).map(Number)
+    .filter(n => n >= 1 && n <= prova.total && impossiveis.indexOf(n) === -1);
+  const trocas = numeros.filter(n => gabarito[n - 1] && gabarito[n - 1] !== c.respostas[n]).length;
+  if (trocas && !confirm('O arquivo tem ' + trocas + ' resposta(s) diferente(s) das que você já marcou. ' +
+                         'Usar as respostas do arquivo?')) return;
+  numeros.forEach(n => { gabarito[n - 1] = c.respostas[n]; pintarQuestao(n); });
+  const anuladas = (c.anuladas || []).filter(n => n >= 1 && n <= prova.total && !c.respostas[n]);
+  anuladas.forEach(n => { gabarito[n - 1] = ANULADA; pintarQuestao(n); });
+  atualizarContador();
+  agendarSalvar();
+
+  status.innerHTML = '';
+  status.append(criar('div', 'ok-box', '✅ ' + (c.rotulo !== 'Gabarito' ? 'Usei o gabarito "' + c.rotulo + '". ' : '') +
+    'Marquei ' + (numeros.length + anuladas.length) + ' de ' + prova.total + ' respostas. Confira as letras nas questões abaixo.'));
+  if (c.quantidade > prova.total) {
+    status.append(criar('div', 'alerta-box', 'Atenção: este gabarito tem ' + c.quantidade + ' respostas, mas a prova tem ' +
+      prova.total + ' questões. Confira se é o gabarito certo.'));
+  }
+  if (impossiveis.length) {
+    status.append(criar('div', 'alerta-box', 'O arquivo tem "E" em questões que só vão até D: ' +
+      impossiveis.map(n => doisDigitos(numProva(n))).join(', ') + '. Não marquei essas. Confira se é o gabarito desta prova.'));
+  }
+  if (anuladas.length) {
+    status.append(criar('div', 'alerta-box', 'Questões anuladas no gabarito oficial: ' +
+      anuladas.map(n => doisDigitos(numProva(n))).join(', ') + '. Já marquei como anuladas: elas não contam na nota ' +
+      '(a prova passa a valer ' + (prova.total - gabarito.filter(l => l === ANULADA).length) + '). ' +
+      'Se preferir dar uma resposta, clique na letra.'));
+  }
+  const faltando = [];
+  for (let n = 1; n <= prova.total; n++) {
+    if ((!c.respostas[n] && anuladas.indexOf(n) === -1) || impossiveis.indexOf(n) !== -1) faltando.push(n);
+  }
+  if (faltando.length) {
+    status.append(criar('div', 'alerta-box', 'Não encontrei a resposta destas questões: ' +
+      faltando.map(n => doisDigitos(numProva(n))).join(', ') + '. Marque essas à mão.'));
+  }
+  status.append(detalhesLidos(lido, c));
+}
+
+/** "Ver o que foi lido": transparência para o professor conferir. */
+function detalhesLidos(lido, c) {
+  const d = criar('details');
+  d.append(criar('summary', 'small', 'Ver o que foi lido do arquivo'));
+  if (c) {
+    const pares = Object.keys(c.respostas).map(n => doisDigitos(numProva(n)) + '-' + c.respostas[n]).join('  ');
+    d.append(criar('p', 'small', pares));
+  }
+  const pre = criar('pre', 'small', String(lido || '').slice(0, 3000));
+  pre.style.whiteSpace = 'pre-wrap';
+  pre.style.background = '#f8fafc';
+  pre.style.padding = '10px';
+  pre.style.borderRadius = '8px';
+  d.append(pre);
+  return d;
+}
+
+function lerTextoLocal(arquivo) {
+  return arquivo.arrayBuffer().then(buf => {
+    const utf8 = new TextDecoder('utf-8').decode(buf);
+    // Arquivos salvos no Bloco de Notas antigo podem estar em "ANSI" (windows-1252).
+    return utf8.indexOf('\uFFFD') === -1 ? utf8 : new TextDecoder('windows-1252').decode(buf);
+  });
+}
+
+/**
+ * Lê o texto de um arquivo de gabarito NO NAVEGADOR (antes era o Google Drive que lia):
+ *   Excel/ODS -> leitor de planilhas (SheetJS); PDF com texto -> o próprio leitor de provas (PyMuPDF);
+ *   foto ou PDF escaneado -> leitor de texto em imagem (Tesseract.js), que erra mais (o professor confere).
+ * Quem transforma o texto em respostas continua sendo o interpretarGabarito().
+ */
+async function lerArquivoNoNavegador(arquivo, status) {
+  const nome = arquivo.name || '', tipo = arquivo.type || '';
+  if (/\.(xlsx|xlsm|xls|ods)$/i.test(nome) || /spreadsheet|ms-excel/i.test(tipo)) return textoDePlanilha(arquivo);
+  if (/\.pdf$/i.test(nome) || tipo === 'application/pdf') {
+    const r = await textoDoPdf(arquivo);
+    if (r.texto.replace(/\s/g, '').length >= 20) return r.texto;
+    // PDF escaneado (as páginas são fotos): lê as primeiras páginas como imagem
+    let t = '';
+    for (const png of r.imagens) {
+      t += await lerImagem(new Blob([Uint8Array.from(atob(png), c => c.charCodeAt(0))], { type: 'image/png' }), status) + '\n';
+    }
+    return t;
+  }
+  if (/^image\//.test(tipo) || /\.(png|jpe?g|webp|bmp|gif)$/i.test(nome)) return lerImagem(arquivo, status);
+  throw new Error('tipo de arquivo não reconhecido. Use foto, PDF, planilha (Excel) ou texto (.txt).');
+}
+
+/** Planilha: todas as abas como texto, linha por linha (o nome da aba vem antes, ex.: "6º ano"). */
+async function textoDePlanilha(arquivo) {
+  const XLSX = await carregarXLSX();
+  const wb = XLSX.read(await arquivo.arrayBuffer());
+  const linhas = [];
+  wb.SheetNames.forEach(nome => {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[nome], { header: 1, raw: false, defval: '' });
+    if (!rows.length) return;
+    linhas.push(nome);
+    rows.forEach(l => {
+      // célula só com "a".."e" vira maiúscula (o intérprete procura letras A-E)
+      const celulas = l.map(v => String(v).trim()).map(v => /^\(?[a-e]\)?$/.test(v) ? v.toUpperCase() : v);
+      if (celulas.some(Boolean)) linhas.push(celulas.join('   '));
+    });
+  });
+  return linhas.join('\n');
+}
+
+/** Texto de um PDF pelo leitor de provas (no Worker, ou na página se o Worker não existir). */
+async function textoDoPdf(arquivo) {
+  const bytes = await arquivo.arrayBuffer();
+  if (usarWorker) {
+    let w = null;
+    try { w = await prepararWorker(); } catch (e) { usarWorker = false; }
+    if (w) {
+      return new Promise((ok, falha) => {
+        w.onmessage = e => {
+          if (e.data.tipo === 'texto') ok(JSON.parse(e.data.r));
+          else if (e.data.tipo === 'erro') falha(new Error(e.data.msg));
+        };
+        w.postMessage({ tipo: 'texto_pdf', bytes: bytes }, [bytes]);
+      });
+    }
+  }
+  const py = await carregarPyodide();
+  py.globals.set('pdf_entrada', new Uint8Array(bytes));
+  try { return JSON.parse(py.runPython('texto_pdf(pdf_entrada.to_py())')); } finally { py.globals.delete('pdf_entrada'); }
+}
+
+/** Foto: leitor de texto em imagem (na 1ª vez baixa uns 10 MB). */
+async function lerImagem(img, status) {
+  await carregarJs('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js', 'Tesseract');
+  if (status) {
+    status.innerHTML = '';
+    status.append(criar('div', 'muted', '⏳ Lendo a foto... (na primeira vez demora um pouco mais: o leitor de texto é baixado)'));
+  }
+  const r = await Tesseract.recognize(img, 'por');
+  return r.data.text;
+}
+
+/** Texto seguro para a planilha: "=...", "+...", "-...", "@..." viraria fórmula no Excel. */
+const comoTextoExcel = v => (typeof v === 'string' && /^[=+\-@]/.test(v) ? "'" + v : v);
+
+/** Resultados -> arquivo Excel (.xlsx), feito no navegador. */
+async function baixarExcel(r, botao) {
+  botao.disabled = true;
+  try {
+    const XLSX = await carregarXLSX();
+    const nq = n => 'Q' + doisDigitos(numProva(n));
+    const cab = ['Data/hora', 'Nome completo', 'Turma', 'Acertos', 'Valendo', 'Nota (0-10)', 'Situação'];
+    for (let n = 1; n <= prova.total; n++) cab.push(nq(n));
+    const linhas = [cab];
+    r.envios.forEach(e => {
+      const l = [new Date(e.quando).toLocaleString('pt-BR'), comoTextoExcel(e.nome), comoTextoExcel(e.turma),
+        e.corrigido ? e.acertos : '', e.corrigido ? e.validas : '', e.corrigido ? Number(e.nota) : '',
+        e.corrigido ? 'Corrigido' : 'Aguardando gabarito'];
+      for (let i = 0; i < prova.total; i++) l.push((e.respostas || [])[i] || '');
+      linhas.push(l);
+    });
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws['!cols'] = [{ wch: 18 }, { wch: 32 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Respostas');
+    const gab = [['Questão', 'Resposta certa', '% de acerto']];
+    for (let n = 1; n <= prova.total; n++) {
+      const g = r.gabarito[n - 1] || '';
+      const qq = r.questoes[n - 1];
+      gab.push([nq(n), g === 'X' ? 'Anulada' : g, qq && g !== 'X' ? qq.percentual : '']);
+    }
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(gab), 'Gabarito');
+    const nomeArq = (prova.nome || 'simulado').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 80) + ' - resultados.xlsx';
+    XLSX.writeFile(wb, nomeArq);
+  } catch (err) {
+    alert('Não consegui gerar o Excel: ' + err.message);
+  } finally {
+    botao.disabled = false;
+  }
+}
+
+/**
+ * Transforma o texto de um gabarito em respostas.
+ * Uma folha pode ter VÁRIOS gabaritos (ex.: 1ª e 2ª série, 1º e 2º dia).
+ * Por isso devolvemos uma lista de "conjuntos", cada um com o seu rótulo:
+ *   { conjuntos: [ { rotulo, respostas: {numero: letra}, quantidade, texto } ] }
+ * Um conjunto novo começa quando a numeração recomeça (aparece de novo uma
+ * questão que já tinha resposta) ou depois de um cabeçalho de série/ano/dia.
+ * Entende "01 - A", "1) b", "1.C", tabelas e uma sequência só de letras.
+ * Nunca inventa: o que não estiver claro simplesmente não entra.
+ */
+function interpretarGabarito(texto, total) {
+  let t = String(texto || '');
+  // Folha de soluções (ex.: OBMEP, "QUESTÃO 1 – ALTERNATIVA A" seguida da explicação):
+  // só essas linhas importam; o texto das soluções tem letras e números soltos que confundiriam.
+  const resolvidas = {};
+  for (const m of t.matchAll(/quest[ãa]o\s*(\d{1,3})\s*[-–—:]\s*(?:alternativa|resposta)\s*\(?([A-E])\)?/gi)) {
+    resolvidas[Number(m[1])] = m[2].toUpperCase();
+  }
+  // Tabelas com o código da questão (ex.: ONC, "NÍVEL A: 9º ANO" + "A1 A2 ... A15" + "C D D ... B"):
+  // um gabarito por nível. "NULA" = anulada; "AouB" (duas certas) fica com a 1ª letra.
+  const porCodigo = gabaritosPorCodigo(t);
+  if (porCodigo) return { conjuntos: porCodigo };
+  // Prova com a alternativa certa marcada (ex.: OBA, "Questão 2) ..." e depois "e) ( X ) Encélado").
+  if (Object.keys(resolvidas).length < 3) {
+    const partes = t.split(/quest[ãa]o\s*(\d{1,3})\s*\)/i);
+    for (let i = 1; i < partes.length; i += 2) {
+      const marcada = partes[i + 1].match(/(?:^|\n)\s*([a-eA-E])\s*\)\s*\(\s*[xX]\s*\)/);
+      if (marcada) resolvidas[Number(partes[i])] = marcada[1].toUpperCase();
+    }
+    if (Object.keys(resolvidas).length >= Math.max(3, total * 0.3)) {
+      return { conjuntos: [{ rotulo: 'Gabarito', respostas: resolvidas, quantidade: Object.keys(resolvidas).length,
+                             texto: t, anuladas: [] }] };
+    }
+  }
+  // A própria prova enviada por engano (ex.: ONC, a prova termina numa folha "GABARITO" em
+  // branco): muitas linhas "B) 3,6 m/s" com o texto da alternativa. Um gabarito não tem isso;
+  // ler as letras daí seria inventar respostas.
+  const alternativasComTexto = (t.match(/^[ \t]*\(?[A-Ea-e]\)[ \t]*[^\s()X][^\n]{2,}/gm) || []).length;
+  if (Object.keys(resolvidas).length < 3 && alternativasComTexto >= Math.max(8, total * 0.4)) {
+    return { conjuntos: [], pareceProva: true };
+  }
+  if (Object.keys(resolvidas).length >= Math.max(3, total * 0.6)) {
+    return { conjuntos: [{ rotulo: 'Gabarito', respostas: resolvidas, quantidade: Object.keys(resolvidas).length,
+                           texto: t, anuladas: [] }] };
+  }
+  // "Gabarito de correspondência" (Fuvest): tabela que liga as versões da prova, não é gabarito.
+  t = t.split(/gabarito\s+de\s+correspond[êe]ncia/i)[0];
+  // Nomes das versões da prova ("PROVA V1", "Versão A", "Tipo 2"), na ordem em que aparecem.
+  const versoes = [];
+  (t.match(/\b(?:prova|vers[ãa]o|tipo)\s+(?:V\d{1,2}|\d{1,2}|[A-D])(?![\wÀ-ÿ])/gi) || []).forEach(v => {
+    const nome = v.replace(/\s+/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase())
+      .replace(/ (v?\w+)$/, (m, c) => ' ' + c.toUpperCase());
+    if (versoes.indexOf(nome) === -1) versoes.push(nome);
+  });
+  t = t
+    // letra minúscula colada ao número ("1-a", "02) b") vira maiúscula
+    .replace(/(\d{1,3}\s*[-–—.:)=]\s*)\(?([a-e])\)?(?![a-zà-ÿ])/g, (m, antes, l) => antes + l.toUpperCase())
+    // "Q1 (c); Q2 (a)" (OBF): letra minúscula entre parênteses logo depois do número
+    .replace(/(\d{1,3}[ \t]*)\(([a-e])\)/g, (m, antes, l) => antes + l.toUpperCase())
+    // números que NÃO são respostas: "questões 01 a 18", "48 QUESTÕES", "página 1/16"
+    // (na mesma linha e com "a"/"e" minúsculos: "QUESTÕES↵01 A 02" é gabarito, não intervalo)
+    .replace(/[Qq][Uu][Ee][Ss][Tt](?:[ÕõOo][Ee][Ss]|[ÃãAa][Oo])[ \t]*(?:de[ \t]*)?\d{1,3}[ \t]*(?:a|e|até|ate|-|–)[ \t]*\d{1,3}/g, ' ')
+    // datas ("28/06/2026", "30.11.2025") e frações/páginas ("1/16")
+    .replace(/\b\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}\b/g, ' ')
+    .replace(/\d+\s*\/\s*\d+/g, ' ')
+    // datas por extenso ("APLICAÇÃO 03 DE DEZEMBRO")
+    .replace(/\b\d{1,2}\s+de\s+(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)/gi, ' ')
+    // código do item ("PS25-LP-024", "PS25-EDFIS-004"; o leitor de PDF às vezes quebra em
+    // "PS25↵-MAT-002E", com a resposta colada no fim): o número do código não é questão
+    .replace(/\b[A-Za-z]{1,6}\d{0,4}\s*(?:-[A-Za-z]{2,6})+-\d{2,4}/g, ' ')
+    .replace(/(^|\s)(?:-[A-Za-z]{2,6})+-\d{2,4}/g, '$1 ')
+    // semestre/ano colado a uma palavra ("1º SEM/20", "SEM/2024"): o número não é questão
+    .replace(/[A-Za-zÀ-ÿºª°]+\s*\/\s*\d{1,4}(?!\d)/g, ' ')
+    // "48 QUESTÕES" (na mesma linha; um número de outra linha não conta)
+    .replace(/(?<![\d\/])\d{1,3}[ \t]*quest(?:ões|oes|ão|ao)/gi, ' ')
+    // "Bloco 1", "Parte 2", "Prova 1"... também não são questões ("Caderno 1" é título: veja abaixo)
+    .replace(/(simulado|bloco|parte|prova|p[áa]gina|folha|volume|unidade|etapa|turma|sala|vers[ãa]o|tipo)\s*\d{1,3}/gi, '$1')
+    // "Q01", "Q.1", "Questão01" = número da questão (vira só " 01")
+    .replace(/(?<![A-Za-zÀ-ÿ])(?:q|quest(?:ão|ao))\.?\s*(\d{1,3})(?![\d])/gi, ' $1')
+    // códigos de letra+número colados ("C1", "C5" = critério de desempate; "1SEM26"; "H12" = habilidade)
+    // não são respostas nem números de questão
+    .replace(/(?<![A-Za-zÀ-ÿ\d])[A-Za-z]{1,4}\d+(?![A-Za-zÀ-ÿ\d])/g, ' ')
+    .replace(/(?<![A-Za-zÀ-ÿ\d])\d+[A-Za-z]{2,}\d*(?![A-Za-zÀ-ÿ\d])/g, ' ')
+    // questão anulada (ex.: ENEM, "123 Anulado"): vira "#", que ocupa o lugar da letra
+    .replace(/(?<![A-Za-zÀ-ÿ])anulad[ao]s?(?![A-Za-zÀ-ÿ])/gi, ' # ');
+
+  const lado = gabaritosLadoALado(t, total, versoes);
+  if (lado) return { conjuntos: lado };
+
+  const conjuntos = [];
+  let atual = null, pendentes = [], serie = '', dia = '', quebra = false, fimUltimaLetra = 0;
+  // "Prova de Nível Jr:", "Nível II" (OBF): o nível escrito antes de cada gabarito dá o nome dele
+  const niveis = [...t.matchAll(/n[íi]vel\s+(jr|j[úu]nior|[IVX]{1,4}|\d|[A-E])(?![A-Za-zÀ-ÿ\d])/gi)]
+    .map(x => ({ pos: x.index, rotulo: 'Nível ' + (/^j/i.test(x[1]) ? 'Jr' : x[1].toUpperCase()) }));
+  const novoConjunto = () => {
+    const inicio = conjuntos.length ? fimUltimaLetra : 0;
+    const nivel = niveis.filter(nv => nv.pos >= inicio && nv.pos < re.lastIndex).pop();
+    atual = { serie: serie, dia: dia, respostas: {}, inicio: fimUltimaLetra, nivel: nivel ? nivel.rotulo : '' };
+    conjuntos.push(atual);
+    pendentes = [];
+    quebra = false;
+  };
+  const re = new RegExp([
+    '(\\d)\\s*[ªa°º]?\\s*[Ss][ÉéEe][Rr][Ii][Ee]',              // 1: "2ª série"
+    '(\\d{1,2})\\s*[ºo°]\\s*[Aa][Nn][Oo](?![a-zà-ÿ])',          // 2: "6º ano"
+    '(\\d)\\s*[ºo°]\\s*[Dd][Ii][Aa](?![a-zà-ÿ])',               // 3: "1º dia"
+    '[Cc][Aa][Dd][Ee][Rr][Nn][Oo]\\s*(\\d{1,2})(?!\\d)',          // 4: "Caderno 2"
+    '(?<![\\d,.])(\\d{1,3})(?![\\d,.]?\\d|[º°ªa-zA-Zà-ÿ%])',     // 5: número de questão
+    '(?<![A-Za-zÀ-ÿ])\\(?([A-E])\\)?(?![A-Za-zÀ-ÿ])',           // 6: letra A-E sozinha
+    '(#)'                                                         // 7: questão anulada
+  ].join('|'), 'g');
+  const soltas = [];
+  // Títulos na ordem em que aparecem. O OCR do Google às vezes lê TODOS os títulos
+  // primeiro e só depois as tabelas; por isso guardamos a lista para usar no final.
+  const secoesDia = [], secoesSerie = [];
+  let m;
+  while ((m = re.exec(t))) {
+    if (m[1] || m[2] || m[3] || m[4]) pendentes = [];   // um título nunca é seguido de uma letra que seja dele
+    if (m[1] || m[2]) {
+      serie = m[1] ? m[1] + 'ª série' : m[2] + 'º ano'; dia = ''; quebra = true;
+      const ant = secoesSerie[secoesSerie.length - 1];
+      // "1ª e 2ª série do Ensino Médio" seguido de "1ª série": o primeiro não é seção de verdade
+      if (ant && t.slice(ant.fim, m.index).trim().length < 40) secoesSerie.pop();
+      secoesSerie.push({ rotulo: serie, inicio: m.index, fim: re.lastIndex });
+    }
+    else if (m[3] || m[4]) {
+      dia = m[3] ? m[3] + 'º dia' : 'Caderno ' + Number(m[4]); quebra = true;
+      secoesDia.push({ rotulo: [serie, dia].filter(Boolean).join(' · '), inicio: m.index });
+    }
+    else if (m[5]) {
+      const n = Number(m[5]);
+      if (n < 1 || n > 200) continue;
+      // Um título (série, dia, caderno) só começa outro gabarito se a numeração recomeça;
+      // se ela continua (ex.: ENEM, "CADERNO 7" lido no meio, entre a 135 e a 136), é o mesmo.
+      const numerosAtual = atual ? Object.keys(atual.respostas).map(Number) : [];
+      if (quebra && numerosAtual.length && n > Math.max.apply(null, numerosAtual)) {
+        quebra = false;
+        if (!atual.dia) atual.dia = dia;
+        if (!atual.serie) atual.serie = serie;
+      }
+      if (!atual || (quebra && numerosAtual.length) || atual.respostas[n]) novoConjunto();
+      const ja = pendentes.indexOf(n);
+      if (ja !== -1) pendentes.splice(ja, 1);   // número repetido antes da letra: vale o último
+      // Números que esperam letra vêm em sequência ("01 02 03" de uma tabela). Um número solto
+      // antes (ex.: ENEM, o "2" de "2º dia" logo antes de "91 D") não é questão.
+      if (pendentes.length && n !== pendentes[pendentes.length - 1] + 1) pendentes = [];
+      pendentes.push(n);
+    } else if (m[7]) {
+      if (pendentes.length) (atual.anuladas = atual.anuladas || []).push(pendentes.shift());
+    } else if (pendentes.length) {
+      atual.respostas[pendentes.shift()] = m[6];   // a letra vai para o número mais antigo que espera (tabelas)
+      fimUltimaLetra = re.lastIndex;
+    } else {
+      soltas.push(m[6]);
+    }
+  }
+
+  // Descarta pedacinhos (ruído) e dá nome a cada conjunto.
+  let validos = conjuntos.filter(c => Object.keys(c.respostas).length >= Math.min(3, Math.ceil(total / 2)));
+  validos.forEach((c, i) => {
+    const prox = conjuntos[conjuntos.indexOf(c) + 1];
+    c.texto = t.slice(c.inicio, prox ? prox.inicio : t.length);
+    c.quantidade = Object.keys(c.respostas).length;
+    c.rotulo = [c.serie, c.dia, c.nivel].filter(Boolean).join(' · ') || (validos.length > 1 ? 'Gabarito ' + (i + 1) : 'Gabarito');
+  });
+  // Se há um título para cada gabarito, o nome vem da ORDEM dos títulos (funciona mesmo
+  // quando o OCR leu todos os títulos antes das tabelas). O texto de cada título (com as
+  // matérias) também é usado para sugerir o gabarito certo.
+  // Usa a lista de títulos (por dia ou por série/ano) que tem um título para cada gabarito.
+  // Ex.: "SARESP · 2º dia" com 6º, 7º e 8º ano -> só 1 título de dia, mas 3 de ano: usa os anos.
+  const secoes = [secoesDia, secoesSerie].find(s => s.length === validos.length) || [];
+  if (validos.length > 1 && secoes.length === validos.length) {
+    validos.forEach((c, k) => {
+      c.rotulo = secoes[k].rotulo;
+      c.texto = t.slice(secoes[k].inicio, secoes[k + 1] ? secoes[k + 1].inicio : t.length);
+    });
+  }
+  // Uma tabela por versão da prova, uma depois da outra (ex.: "PROVA V1", "PROVA V2"...).
+  if (validos.length > 1 && !secoes.length && versoes.length === validos.length) {
+    validos.forEach((c, k) => { c.rotulo = versoes[k]; });
+  }
+  // Nomes repetidos (não deu para saber qual é qual): numera pela posição na folha.
+  validos.forEach((c, k) => {
+    if (validos.filter(x => x.rotulo === c.rotulo).length > 1) c.rotulo = (k + 1) + 'º da folha · ' + c.rotulo;
+  });
+  // Sem números: talvez seja só a sequência de letras ("A B D C..." ou "ABDC...").
+  if (!validos.length) {
+    const letras = (t.match(/(?<![A-Za-zÀ-ÿ])[A-E]+(?![A-Za-zÀ-ÿ])/g) || []).join('').split('');
+    const seq = letras.length === total ? letras : (soltas.length === total ? soltas : null);
+    if (seq) {
+      const respostas = {};
+      seq.forEach((l, i) => { respostas[i + 1] = l; });
+      validos = [{ rotulo: 'Gabarito', respostas: respostas, quantidade: total, texto: t }];
+    }
+  }
+  return { conjuntos: validos.map(c => ({ rotulo: c.rotulo, respostas: c.respostas, quantidade: c.quantidade,
+                                          texto: c.texto, anuladas: c.anuladas || [] })) };
+}
+
+/**
+ * Várias versões da prova numa tabela só, lado a lado (ex.: Fuvest, "PROVA V1 | V2 | V3 | V4"):
+ * cada linha traz "1 E 41 C   1 A 41 C   1 B 41 C   1 A 41 A". Lendo em ordem, os mesmos
+ * números se repetem a cada poucos pares. Aqui cada pedaço da linha vai para a sua versão.
+ * Devolve a lista de conjuntos, ou null se a folha não for assim.
+ */
+function gabaritosLadoALado(t, total, versoes) {
+  const re = /(?<![\d,.])(\d{1,3})(?![\d,.]?\d|[º°ªa-zA-Zà-ÿ%])|(?<![A-Za-zÀ-ÿ])\(?([A-E])\)?(?![A-Za-zÀ-ÿ])/g;
+  const tokens = [];
+  let m;
+  while ((m = re.exec(t))) tokens.push(m[1] ? Number(m[1]) : m[2]);
+  const pares = [];   // número seguido da sua letra
+  for (let i = 0; i + 1 < tokens.length; i++) {
+    if (typeof tokens[i] === 'number' && typeof tokens[i + 1] === 'string') { pares.push([tokens[i], tokens[i + 1]]); i++; }
+  }
+  if (!pares.length) return null;
+  // o primeiro número volta a aparecer a cada "largura" pares: largura = pares de cada versão por linha
+  const largura = pares.findIndex((p, i) => i > 0 && p[0] === pares[0][0]);
+  if (largura < 1 || largura > 10) return null;
+  let qtd = 1;
+  while (pares[qtd * largura] && pares[qtd * largura][0] === pares[0][0]) qtd++;
+  if (qtd < 2) return null;
+  const sets = Array.from({ length: qtd }, () => ({}));
+  const linha = qtd * largura;
+  let linhas = 0;
+  for (let r = 0; (r + 1) * linha <= pares.length; r++) {
+    const pedaco = pares.slice(r * linha, (r + 1) * linha);
+    const nums = g => pedaco.slice(g * largura, (g + 1) * largura).map(p => p[0]).join(',');
+    // toda versão traz os mesmos números na mesma linha; senão a tabela acabou
+    if (!sets.every((s, g) => nums(g) === nums(0) && pedaco.slice(g * largura, (g + 1) * largura).every(p => !s[p[0]]))) break;
+    sets.forEach((s, g) => pedaco.slice(g * largura, (g + 1) * largura).forEach(p => { s[p[0]] = p[1]; }));
+    linhas++;
+  }
+  if (linhas < 3 || Object.keys(sets[0]).length < Math.min(3, Math.ceil(total / 2))) return null;
+  return sets.map((respostas, k) => ({
+    rotulo: versoes.length === qtd ? versoes[k] : 'Versão ' + (k + 1),
+    respostas: respostas, quantidade: Object.keys(respostas).length,
+    texto: versoes.length === qtd ? versoes[k] : ''
+  }));
+}
+
+/**
+ * Dá uma nota a cada conjunto para sugerir o desta prova: mesma quantidade
+ * de questões, mesmas matérias e mesma série/ano do nome da prova.
+ */
+/**
+ * Gabarito em tabela com o código de cada questão (ex.: ONC 2016): "A1 A2 ... A15" e, logo
+ * depois, as respostas na mesma ordem. Cada sequência de códigos com a mesma letra vira um
+ * gabarito, com o nome do "NÍVEL ..." escrito antes dela. Devolve null se não for esse formato.
+ */
+function gabaritosPorCodigo(t) {
+  const tokens = [];
+  const re = /\S+/g;
+  let m;
+  while ((m = re.exec(t))) tokens.push({ s: m[0], i: m.index });
+  const resposta = /^(?:[A-E]|NULA|ANULADA|ANULADO|[A-E]\s*ou\s*[A-E])$/i;
+  const conjuntos = [];
+  for (let k = 0; k < tokens.length; k++) {
+    const c = /^([A-E])1$/.exec(tokens[k].s);
+    if (!c) continue;
+    // códigos seguidos: A1, A2, A3...
+    let n = 1;
+    while (k + n < tokens.length && tokens[k + n].s === c[1] + (n + 1)) n++;
+    let resps;
+    if (n >= 5) {
+      resps = tokens.slice(k + n, k + 2 * n).map(x => x.s);
+    } else {
+      // célula por célula (leitura do Drive): "A1 C A2 D A3 D ..."
+      n = 0;
+      while (k + 2 * n + 1 < tokens.length && tokens[k + 2 * n].s === c[1] + (n + 1)
+             && resposta.test(tokens[k + 2 * n + 1].s)) n++;
+      if (n < 5) continue;
+      resps = Array.from({ length: n }, (x, j) => tokens[k + 2 * j + 1].s);
+    }
+    if (resps.length < n || !resps.every(r => resposta.test(r))) continue;
+    const respostas = {}, anuladas = [];
+    resps.forEach((r, j) => {
+      if (/^(nula|anulad[ao])$/i.test(r)) anuladas.push(j + 1);
+      else respostas[j + 1] = r[0].toUpperCase();
+    });
+    const antes = t.slice(0, tokens[k].i).split('\n').map(l => l.trim()).filter(Boolean);
+    const titulo = antes.reverse().find(l => /n[íi]vel\s+\w/i.test(l)) || ('Gabarito ' + c[1]);
+    const rotulo = titulo.replace(/\s+/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase())
+      .replace(/n[íi]vel ([a-z0-9]+)/i, (x, l) => 'Nível ' + l.toUpperCase());
+    conjuntos.push({ rotulo: rotulo, respostas: respostas, quantidade: n, anuladas: anuladas,
+                     texto: t.slice(tokens[k].i, tokens[Math.min(k + 2 * n, tokens.length - 1)].i) });
+    k += 2 * n - 1;
+  }
+  return conjuntos.length ? conjuntos : null;
+}
+
+function sugerirConjunto(conjuntos, total, materias, nomeProva) {
+  const simples = s => String(s || '').toLowerCase().replace(/ª/g, 'a').replace(/[º°]/g, 'o')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  const nome = simples(nomeProva);
+  const unicas = Array.from(new Set((materias || []).filter(Boolean)));
+  const notas = conjuntos.map(c => {
+    let p = c.quantidade === total ? 10 : -10 * Math.abs(c.quantidade - total) / total;
+    const tx = simples(c.texto);
+    unicas.forEach(mat => { if (tx.indexOf(simples(mat)) !== -1) p += 2; });
+    const partes = c.rotulo.split(' · ');
+    if (partes[0] && /serie|ano/.test(simples(partes[0])) && nome.indexOf(simples(partes[0])) !== -1) p += 3;
+    if (partes[1] && nome.indexOf(simples(partes[1])) !== -1) p += 3;
+    // versão da prova ("Prova V1") no nome do simulado ("fuvest2027-fase1-V1")
+    const versao = /^(?:prova|vers[ãa]o|tipo) (\w+)$/i.exec(c.rotulo);
+    if (versao && new RegExp('(^|[^a-z0-9])' + simples(versao[1]) + '([^a-z0-9]|$)').test(nome)) p += 3;
+    // nível da olimpíada ("Nível D: 3º ano...") no nome do simulado ("ONC 2016 · Nível D")
+    const nivel = /n[íi]vel ([a-z0-9]+)/i.exec(c.rotulo);
+    if (nivel && new RegExp('nivel ?' + simples(nivel[1]) + '([^a-z0-9]|$)').test(nome)) p += 3;
+    return p;
+  });
+  const ordem = conjuntos.map((c, i) => i).sort((a, b) => notas[b] - notas[a]);
+  // Só recomenda se o primeiro for claramente melhor que o segundo.
+  const recomendado = ordem.length === 1 || notas[ordem[0]] > notas[ordem[1]] ? ordem[0] : -1;
+  return { ordem: ordem, recomendado: recomendado };
+}
+
+function mostrarImagem(caixa) {
+  const n = Number(caixa.dataset.n), chave = prova.id + ':' + n;
+  const por = src => { caixa.innerHTML = ''; const i = new Image(); i.src = src; i.alt = 'Questão ' + numProva(n); caixa.append(i); };
+  if (imagens[chave]) return por(imagens[chave]);
+  filaImagens(() => api('imagemProfessor', prova.id, n).then(src => { imagens[chave] = src; por(src); })
+    .catch(err => { caixa.textContent = 'Não foi possível carregar a imagem (' + err.message + ').'; }));
+}
+// no máximo 3 imagens baixando ao mesmo tempo
+let baixando = 0; const espera = [];
+function filaImagens(tarefa) {
+  if (baixando >= 3) return espera.push(tarefa);
+  baixando++;
+  tarefa().finally(() => { baixando--; if (espera.length) filaImagens(espera.shift()); });
+}
+function pintarQuestao(n) {
+  const card = $('qc' + n);
+  const anulada = gabarito[n - 1] === ANULADA;
+  card.classList.toggle('marcada', !!gabarito[n - 1]);
+  card.classList.toggle('anulada', anulada);
+  card.querySelectorAll('.letra').forEach(b => b.classList.toggle('escolhida', b.textContent === gabarito[n - 1]));
+  const anular = card.querySelector('.anular');
+  if (anular) {
+    anular.classList.toggle('escolhida', anulada);
+    anular.textContent = anulada ? 'Anulada (não conta na nota) · desfazer' : 'Anular questão';
+  }
+}
+function marcar(n, letra) {
+  const eraVazia = !gabarito[n - 1];
+  gabarito[n - 1] = letra;
+  pintarQuestao(n);
+  atualizarContador();
+  agendarSalvar();
+  // Pula para a próxima questão sem resposta (agiliza marcar o gabarito todo).
+  if (eraVazia) {
+    const prox = gabarito.findIndex((l, i) => i >= n && !l);
+    if (prox !== -1) $('qc' + (prox + 1)).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+function atualizarContador() {
+  const faltam = gabarito.filter(l => !l).length;
+  const anuladas = gabarito.filter(l => l === ANULADA).length;
+  $('gabContador').textContent = faltam ? 'Faltam ' + faltam + ' de ' + prova.total
+    : '✅ Gabarito completo' + (anuladas ? ' · ' + anuladas + (anuladas === 1 ? ' anulada' : ' anuladas') +
+                               ' (a prova vale ' + (prova.total - anuladas) + ')' : '');
+  $('gabContinuar').classList.toggle('verde', !faltam);
+  $('gabContinuar').classList.toggle('primary', !!faltam);
+}
+let timerSalvar = null, salvando = Promise.resolve();
+function agendarSalvar() {
+  $('gabSalvo').textContent = 'Salvando...';
+  clearTimeout(timerSalvar);
+  timerSalvar = setTimeout(salvarGabaritoAgora, 800);
+}
+function salvarGabaritoAgora() {
+  if (!timerSalvar || !prova) return salvando;
+  clearTimeout(timerSalvar);
+  timerSalvar = null;
+  const id = prova.id, copia = gabarito.slice();
+  salvando = salvando.then(() => api('salvarGabarito', id, copia)).then(r => {
+    if (prova && prova.id === id) prova.gabarito = copia;
+    $('gabSalvo').textContent = 'Salvo ✓' + (r.corrigidos ? ' · notas de ' + r.corrigidos + ' envio(s) atualizadas' : '');
+  }).catch(err => { $('gabSalvo').textContent = 'Erro ao salvar: ' + err.message; });
+  return salvando;
+}
+$('gabContinuar').onclick = () => abrirAba('publicar');
+window.addEventListener('beforeunload', e => { if (timerSalvar) { salvarGabaritoAgora(); e.preventDefault(); } });
+
+// ---------- aba 2: enviar aos alunos ----------
+// Abrir gera um CÓDIGO novo (o anterior deixa de valer) e a prova fecha sozinha depois do prazo.
+const HORAS_OPCOES = [1, 2, 3, 4, 6, 8, 12, 24, 48, 72];
+function quandoFecha(iso) {
+  const d = new Date(iso);
+  const hoje = new Date().toDateString() === d.toDateString();
+  return (hoje ? 'hoje' : d.toLocaleDateString('pt-BR')) + ' às ' +
+    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+function desenharPublicar() {
+  const caixa = $('abaPublicar');
+  caixa.innerHTML = '';
+  const faltam = gabarito.filter(l => !l).length;
+
+  if (prova.situacao !== 'Publicado') {
+    caixa.append(criar('h2', '', prova.situacao === 'Rascunho' ? 'Abrir a prova para os alunos' : '🔒 A prova está fechada'));
+    if (prova.situacao === 'Encerrado') {
+      caixa.append(criar('p', 'muted', 'Os alunos não conseguem mais responder. As notas continuam na aba Resultados. ' +
+        'Você pode abrir de novo (o código será outro).'));
+    }
+    if (faltam) {
+      caixa.append(criar('div', 'alerta-box', 'Ainda faltam ' + faltam + ' respostas no gabarito. Você pode abrir ' +
+        'mesmo assim: as notas serão calculadas sozinhas quando o gabarito estiver completo.'));
+    } else {
+      caixa.append(criar('div', 'ok-box', 'O gabarito está completo. Os alunos verão a nota assim que enviarem.'));
+    }
+    const linha = criar('div', 'link-box');
+    linha.style.alignItems = 'center';
+    const sel = criar('select');
+    HORAS_OPCOES.forEach(h => {
+      const o = criar('option', '', h + (h === 1 ? ' hora' : ' horas'));
+      o.value = h;
+      if (h === 4) o.selected = true;
+      sel.append(o);
+    });
+    linha.append(criar('span', '', 'Fechar sozinha depois de'), sel);
+    caixa.append(linha);
+    const b = criar('button', 'btn verde grande', '🚀 Abrir para os alunos');
+    b.onclick = () => mudar('Publicado', b, Number(sel.value));
+    caixa.append(b);
+    return;
+  }
+
+  caixa.append(criar('h2', '', '✅ A prova está aberta'));
+  caixa.append(criar('p', 'muted', 'Os alunos entram em ' + ALUNO_URL.replace(/^https?:\/\//, '') +
+    ' e digitam este código:'));
+  caixa.append(criar('div', 'codigo-grande', prova.codigo || '—'));
+  if (prova.expiraEm) caixa.append(criar('p', 'muted', '⏰ Fecha sozinha ' + quandoFecha(prova.expiraEm) + '.'));
+
+  caixa.append(criar('p', 'muted', 'Ou mande o link direto (WhatsApp, Google Sala de Aula, e-mail...):'));
+  const box = criar('div', 'link-box');
+  const input = criar('input');
+  input.type = 'text'; input.readOnly = true; input.value = prova.link;
+  input.onclick = () => input.select();
+  const copiar = criar('button', 'btn primary', '📋 Copiar link');
+  copiar.onclick = () => copiarTexto(input, copiar);
+  const zap = criar('a', 'btn verde', 'Enviar pelo WhatsApp');
+  zap.href = 'https://wa.me/?text=' + encodeURIComponent(prova.nome + ' — responda aqui: ' + prova.link +
+    ' (ou entre em ' + ALUNO_URL + ' com o código ' + prova.codigo + ')');
+  zap.target = '_blank';
+  box.append(input, copiar, zap);
+  caixa.append(box);
+  const ver = criar('a', 'link-neutro', 'Abrir como aluno (para testar)');
+  ver.href = prova.link; ver.target = '_blank'; ver.style.marginLeft = '0';
+  caixa.append(ver);
+
+  const lista = criar('label');
+  lista.style.cssText = 'display:flex;gap:10px;align-items:flex-start;margin:18px 0 4px;cursor:pointer';
+  const marca = criar('input');
+  marca.type = 'checkbox'; marca.checked = prova.apareceNaLista !== false;
+  marca.style.cssText = 'width:20px;height:20px;margin-top:2px';
+  const textoLista = criar('span');
+  textoLista.innerHTML = '<b>Mostrar na lista de provas abertas</b> (o aluno escolhe sem digitar o código).<br>' +
+    '<span class="muted small">Desmarque para só quem tem o código ou o link conseguir entrar.</span>';
+  lista.append(marca, textoLista);
+  marca.onchange = () => api('aparecerNaLista', prova.id, marca.checked)
+    .then(v => { prova.apareceNaLista = v; })
+    .catch(err => { marca.checked = !marca.checked; alert(err.message); });
+  caixa.append(lista);
+
+  if (faltam) caixa.append(criar('div', 'alerta-box', 'Lembrete: faltam ' + faltam + ' respostas no gabarito (aba 1). ' +
+    'Enquanto isso, os alunos não veem a nota.'));
+  const fechar = criar('button', 'btn secondary', '🔒 Fechar agora (os alunos não poderão mais responder)');
+  fechar.style.marginTop = '24px';
+  fechar.onclick = () => {
+    if (confirm('Fechar a prova agora? Os alunos não poderão mais enviar respostas. Você pode abrir de novo depois (com outro código).')) {
+      mudar('Encerrado', fechar);
+    }
+  };
+  caixa.append(criar('br'), fechar);
+}
+function mudar(situacao, botao, horas) {
+  botao.disabled = true;
+  salvarGabaritoAgora().then(() => api('mudarSituacao', prova.id, situacao, horas)).then(p => {
+    Object.assign(prova, { situacao: p.situacao, codigo: p.codigo, expiraEm: p.expiraEm, apareceNaLista: p.apareceNaLista });
+    desenharCabecalho();
+    desenharPublicar();
+  }).catch(err => { botao.disabled = false; alert('Erro: ' + err.message); });
+}
+
+function copiarTexto(input, botao) {
+  const pronto = () => { const t = botao.textContent; botao.textContent = '✓ Copiado!'; setTimeout(() => botao.textContent = t, 2000); };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(input.value).then(pronto).catch(() => { input.select(); document.execCommand('copy'); pronto(); });
+  } else { input.select(); document.execCommand('copy'); pronto(); }
+}
+
+// ---------- aba 3: resultados ----------
+function desenharResultados() {
+  const caixa = $('abaResultados');
+  caixa.innerHTML = '<div class="card"><div class="spinner"></div></div>';
+  salvarGabaritoAgora().then(() => api('resultados', prova.id)).then(r => {
+    caixa.innerHTML = '';
+    const topo = criar('div', 'card');
+    const linha = criar('div', 'linha');
+    linha.append(criar('h2', '', 'Resultados'));
+    const atualizar = criar('button', 'btn secondary', '↻ Atualizar');
+    atualizar.onclick = desenharResultados;
+    linha.append(atualizar);
+    topo.append(linha);
+    caixa.append(topo);
+
+    if (!r.alunos.length) {
+      topo.append(criar('p', 'muted', 'Ainda ninguém respondeu. Assim que os alunos enviarem, as notas aparecem aqui.'));
+      return;
+    }
+    if (!r.gabaritoCompleto) topo.append(criar('div', 'alerta-box', 'As notas aparecem quando o gabarito estiver completo (aba 1).'));
+
+    const corrigidos = r.alunos.filter(a => a.nota !== '' && a.nota !== null);
+    const media = corrigidos.length ? corrigidos.reduce((t, a) => t + Number(a.nota), 0) / corrigidos.length : null;
+    const nums = criar('div', 'numeros');
+    const caixaNum = (rotulo, valor) => { const d = criar('div', 'numero'); d.append(criar('b', '', valor), criar('span', 'muted', rotulo)); return d; };
+    nums.append(caixaNum(r.alunos.length === 1 ? 'aluno respondeu' : 'alunos responderam', String(r.alunos.length)));
+    if (media !== null) nums.append(caixaNum('nota média (0 a 10)', media.toFixed(1).replace('.', ',')));
+    topo.append(nums);
+
+    // Questões que a turma mais errou
+    if (r.gabaritoCompleto && r.questoes.length) {
+      const dificeis = r.questoes.filter(q => q.correta !== ANULADA).sort((a, b) => a.percentual - b.percentual).slice(0, 5);
+      const card = criar('div', 'card');
+      card.append(criar('h2', '', 'Questões que a turma mais errou'));
+      const t = criar('table');
+      t.innerHTML = '<tr><th>Questão</th><th>Acertaram</th><th>Resposta certa</th><th>Mais marcada</th></tr>';
+      dificeis.forEach(q => {
+        const tr = criar('tr');
+        const mais = Object.keys(q.marcadas).sort((a, b) => q.marcadas[b] - q.marcadas[a])[0];
+        [doisDigitos(numProva(q.numero)), q.percentual + '%', q.correta, mais].forEach(v => tr.append(criar('td', '', v)));
+        t.append(tr);
+      });
+      card.append(t);
+      caixa.append(card);
+    }
+
+    const card = criar('div', 'card');
+    card.append(criar('h2', '', 'Notas dos alunos'));
+    const t = criar('table');
+    t.innerHTML = '<tr><th>Nome</th><th>Turma</th><th>Acertos</th><th>Nota</th><th>Enviado em</th><th></th></tr>';
+    r.alunos.slice().sort((a, b) => (a.turma + a.nome).localeCompare(b.turma + b.nome, 'pt-BR')).forEach(a => {
+      const tr = criar('tr');
+      const nota = a.nota === '' || a.nota === null ? '—' : String(a.nota).replace('.', ',');
+      [a.nome, a.turma, a.acertos === '' ? '—' : a.acertos + '/' + (a.validas || prova.total), nota, dataBR(a.data)]
+        .forEach(v => tr.append(criar('td', '', v)));
+      const apagar = criar('button', 'apagar-envio', '✕');
+      apagar.title = 'Apagar este envio';
+      apagar.onclick = () => {
+        if (!confirm('Apagar o envio de ' + a.nome + ' (' + a.turma + ')?')) return;
+        api('apagarEnvio', a.id).then(desenharResultados).catch(err => alert(err.message));
+      };
+      const td = criar('td');
+      td.append(apagar);
+      tr.append(td);
+      t.append(tr);
+    });
+    card.append(t);
+    const excel = criar('button', 'btn secondary', '⬇ Baixar Excel');
+    excel.style.marginTop = '14px';
+    excel.onclick = () => baixarExcel(r, excel);
+    card.append(excel);
+    caixa.append(card);
+  }).catch(err => { caixa.innerHTML = ''; caixa.append(criar('div', 'erro-box', 'Erro: ' + err.message)); });
+}
+
+// ---------- ações do simulado ----------
+$('btnRenomear').onclick = () => {
+  const novo = prompt('Novo nome do simulado:', prova.nome);
+  if (!novo || novo.trim() === prova.nome) return;
+  api('renomearProva', prova.id, novo).then(n => { prova.nome = n; desenharCabecalho(); }).catch(err => alert(err.message));
+};
+$('btnExcluir').onclick = () => {
+  const aviso = prova.envios ? '\n\nATENÇÃO: ' + prova.envios + ' aluno(s) já responderam. As respostas também serão apagadas.' : '';
+  if (!confirm('Excluir "' + prova.nome + '"? As imagens e as respostas serão apagadas para sempre.' + aviso)) return;
+  carregando('Excluindo...');
+  clearTimeout(timerSalvar); timerSalvar = null;   // não salva gabarito de um simulado que vai sumir
+  api('excluirProva', prova.id).then(abrirPainel).catch(err => { alert(err.message); abrirPainel(); });
+};
+
+// ================= início =================
+iniciar();
+</script>
 </body>
 </html>
