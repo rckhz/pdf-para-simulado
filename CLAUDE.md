@@ -54,6 +54,9 @@ Aluno abre ?prova=ID ──► Aluno.html mostra imagens, envia respostas ──
 | `entrega/` | 3 textos simples para o professor (ler primeiro, instalar, usar) |
 | `site/` | **Site dos alunos** (Vercel): `index.html` GERADO do `Aluno.html` por `gerar_site.py` (não edite à mão); `gerar_config.js` + `vercel.json` montam `public/` com o `config.js` (variável `APP_URL` da Vercel) |
 | `src/pdf_para_simulado/gerar_site.py` | Gera `site/index.html` a partir do `Aluno.html` (rode sempre que mudar o `Aluno.html`) |
+| `PLANO_SUPABASE.md` | **Plano do site próprio** (Supabase + Cloudflare Pages), em construção por etapas. Leia antes de mexer em `web/` ou `supabase/` |
+| `supabase/esquema.sql` | Banco do site próprio: tabelas, RLS, correção e código da prova DENTRO do banco, funções do aluno (`provas_abertas`, `prova_por_codigo`, `dados_prova`, `enviar_respostas`) e do professor. Rode no SQL Editor (pode rodar de novo) |
+| `web/` | Site próprio: `index.html` (aluno/professor), `aluno.html` (código ou link; fala com o Supabase por `rpc()`; imagens da pasta pública `questoes`), `professor.html` (provisório). `gerar_config.js` monta `public/` com `SUPABASE_URL` + `SUPABASE_KEY` (chave PÚBLICA; recusa a secreta) |
 
 O pacote Python se chama `pdf_para_simulado` (antes era `escola`); o projeto no `pyproject.toml`
 se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-simulado`.

@@ -22,3 +22,7 @@ dev_local/
 
 # site dos alunos: pasta montada pela Vercel ao publicar
 site/public/
+
+# site novo (Supabase): pasta montada na publicação e config local
+web/public/
+web/config.js
