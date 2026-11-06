@@ -179,8 +179,12 @@ trocando as chamadas ao Apps Script por chamadas ao `supabase-js`.
   as férias, entre no Supabase e clique em Restore").
 - **P6 — E-mail limitado no Supabase grátis:** por isso o admin cria o professor com **senha
   provisória** e pode **redefinir** pela tela (sem depender de e-mail).
-- **P7 — Criar professor precisa da chave de admin:** fica numa **Edge Function** que só aceita
-  pedido do admin logado (seção 7).
+- **P7 — Criar professor precisa da chave de admin:** ~~Edge Function~~ **Decidido na etapa 4 (2026-11-06):**
+  funções DENTRO do banco (`criar_professor`, `redefinir_senha_professor`, `definir_professor_ativo`,
+  `SECURITY DEFINER`, só o admin) escrevem nas tabelas do login (`auth.users`/`auth.identities`). Assim a
+  chave secreta não fica guardada em lugar nenhum e a instalação continua sendo só o SQL. Risco: uma
+  atualização do Supabase mudar essas tabelas (rodar o teste do banco antes de usar). Desativar usa
+  `banned_until` (data daqui a 100 anos; o login não entende 'infinity').
 - **P9 — Instalar por escola é técnico:** guia passo a passo com imagens; um **script único** que
   monta o banco; mesmo repositório para todas. **Sobra:** quando o banco mudar, aplicar a mudança no
   Supabase de cada escola — prever um passo de "atualização" (script de migração).

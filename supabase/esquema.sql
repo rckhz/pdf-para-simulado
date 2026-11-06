@@ -394,6 +394,92 @@ $$;
 
 
 -- ---------------------------------------------------------------------
+-- 5b. CADASTRO DE PROFESSORES (só o administrador)
+--     As contas de login são criadas AQUI DENTRO do banco, sem a chave secreta do Supabase
+--     (que não precisa ficar guardada em lugar nenhum). O professor recebe uma senha
+--     provisória e é obrigado a trocar no 1º acesso (trocar_senha).
+--     ATENÇÃO: escrevem nas tabelas internas do login (auth.users e auth.identities). Se uma
+--     atualização do Supabase mudar essas tabelas, rode o teste do banco antes de usar.
+-- ---------------------------------------------------------------------
+create or replace function public.criar_professor(email_prof text, nome_prof text, senha_provisoria text,
+                                                  papel_prof text default 'professor')
+returns uuid
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  uid uuid := gen_random_uuid();
+  e text := lower(btrim(coalesce(email_prof, '')));
+begin
+  if not eh_admin() then
+    raise exception 'Só o administrador pode cadastrar professores.';
+  end if;
+  if e !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
+    raise exception 'E-mail inválido.';
+  end if;
+  if length(coalesce(senha_provisoria, '')) < 8 then
+    raise exception 'A senha provisória precisa ter pelo menos 8 caracteres.';
+  end if;
+  if coalesce(papel_prof, '') not in ('admin', 'professor') then
+    raise exception 'Papel inválido.';
+  end if;
+  if exists (select 1 from auth.users where lower(email) = e) then
+    raise exception 'Já existe uma conta com este e-mail.';
+  end if;
+  insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+                          raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+                          confirmation_token, recovery_token, email_change_token_new, email_change)
+  values ('00000000-0000-0000-0000-000000000000', uid, 'authenticated', 'authenticated', e,
+          extensions.crypt(senha_provisoria, extensions.gen_salt('bf')), now(),
+          '{"provider": "email", "providers": ["email"]}', '{}', now(), now(), '', '', '', '');
+  insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+  values (gen_random_uuid(), uid, uid::text, json_build_object('sub', uid::text, 'email', e), 'email', now(), now(), now());
+  insert into professores (id, nome, email, papel, trocar_senha)
+  values (uid, coalesce(nullif(btrim(nome_prof), ''), e), e, papel_prof, true);
+  return uid;
+end
+$$;
+
+-- Nova senha provisória (o professor esqueceu a senha): ele troca no próximo acesso.
+create or replace function public.redefinir_senha_professor(prof_id uuid, senha_provisoria text) returns void
+language plpgsql volatile security definer set search_path = public as $$
+begin
+  if not eh_admin() then
+    raise exception 'Só o administrador pode redefinir senhas.';
+  end if;
+  if length(coalesce(senha_provisoria, '')) < 8 then
+    raise exception 'A senha provisória precisa ter pelo menos 8 caracteres.';
+  end if;
+  if not exists (select 1 from professores where id = prof_id) then
+    raise exception 'Professor não encontrado.';
+  end if;
+  update auth.users
+     set encrypted_password = extensions.crypt(senha_provisoria, extensions.gen_salt('bf')), updated_at = now()
+   where id = prof_id;
+  update professores set trocar_senha = true where id = prof_id;
+end
+$$;
+
+-- Desativar (não entra mais; os simulados dele ficam) ou reativar um professor.
+create or replace function public.definir_professor_ativo(prof_id uuid, ativar boolean) returns void
+language plpgsql volatile security definer set search_path = public as $$
+begin
+  if not eh_admin() then
+    raise exception 'Só o administrador pode fazer isso.';
+  end if;
+  if prof_id = auth.uid() then
+    raise exception 'Você não pode desativar a sua própria conta.';
+  end if;
+  update professores set ativo = coalesce(ativar, false) where id = prof_id;
+  if not found then
+    raise exception 'Professor não encontrado.';
+  end if;
+  -- o login também passa a recusar a conta desativada
+  -- (data bem longe no futuro: o login do Supabase não entende 'infinity')
+  update auth.users set banned_until = case when ativar then null else now() + interval '100 years' end where id = prof_id;
+end
+$$;
+
+
+-- ---------------------------------------------------------------------
 -- 6. REGRAS DE ACESSO (Row Level Security)
 -- ---------------------------------------------------------------------
 alter table public.config_escola   enable row level security;
@@ -459,7 +545,9 @@ grant execute on function public.provas_abertas(), public.prova_por_codigo(text)
       public.enviar_respostas(uuid, text, text, text[]), public.escola_tem_admin() to anon, authenticated;
 grant execute on function public.meu_papel(), public.eh_admin(), public.dono_do_simulado(uuid),
       public.dono_da_pasta(text), public.abrir_prova(uuid, int), public.encerrar_prova(uuid),
-      public.assumir_administracao(text), public.senha_trocada() to authenticated;
+      public.assumir_administracao(text), public.senha_trocada(),
+      public.criar_professor(text, text, text, text), public.redefinir_senha_professor(uuid, text),
+      public.definir_professor_ativo(uuid, boolean) to authenticated;
 
 
 -- ---------------------------------------------------------------------

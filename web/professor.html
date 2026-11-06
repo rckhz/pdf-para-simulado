@@ -90,7 +90,7 @@
 
   <!-- Meus simulados -->
   <section id="tPainel" class="tela hidden">
-    <div class="linha" style="margin-bottom:14px"><h1>Meus simulados</h1><button class="btn primary grande" id="btnNovo">+ Novo simulado</button></div>
+    <div class="linha" style="margin-bottom:14px"><h1>Meus simulados</h1><div><button class="btn secondary grande hidden" id="btnProfessores">👥 Professores</button> <button class="btn primary grande" id="btnNovo">+ Novo simulado</button></div></div>
     <div id="listaProvas"></div>
     <details class="card" style="margin-top:24px">
       <summary>⚙ Configurações</summary>
@@ -106,6 +106,13 @@
       </div>
       <p><button class="btn secondary" id="btnMinhaSenha">Trocar minha senha</button></p>
     </details>
+  </section>
+
+  <!-- Professores da escola (só o administrador) -->
+  <section id="tProfessores" class="tela hidden">
+    <button class="voltar" data-voltar>← Meus simulados</button>
+    <h1 style="margin:6px 0 14px">👥 Professores</h1>
+    <div id="professoresConteudo"></div>
   </section>
 
   <!-- Novo simulado -->
@@ -458,7 +465,8 @@ async function entrar() {
   const { error } = await sb.auth.signInWithPassword({ email: email, password: senha });
   $('btnSenha').disabled = false;
   if (error) {
-    $('senhaErro').textContent = /invalid/i.test(error.message) ? 'E-mail ou senha incorretos.' : erroDe(error).message;
+    $('senhaErro').textContent = /invalid/i.test(error.message) ? 'E-mail ou senha incorretos.'
+      : /banned/i.test(error.message) ? 'Esta conta foi desativada pelo administrador da escola.' : erroDe(error).message;
     return;
   }
   $('senha').value = '';
@@ -569,6 +577,7 @@ function abrirPainel() {
     $('quemSouTexto').textContent = 'Você entrou como ' + eu.nome + ' (' + eu.email + ')' +
       (admin ? ' · administrador da escola: você vê os simulados de todos os professores.' : '.');
     $('caixaMostrarCerta').classList.toggle('hidden', !admin);
+    $('btnProfessores').classList.toggle('hidden', !admin);
     $('mostrarCerta').checked = dados.mostrarCerta !== false;
     const lista = $('listaProvas');
     lista.innerHTML = '';
@@ -1832,6 +1841,123 @@ $('btnExcluir').onclick = () => {
   clearTimeout(timerSalvar); timerSalvar = null;   // não salva gabarito de um simulado que vai sumir
   api('excluirProva', prova.id).then(abrirPainel).catch(err => { alert(err.message); abrirPainel(); });
 };
+
+// ================= professores da escola (só o administrador) =================
+// As contas são criadas por funções do banco que conferem se quem pede é o administrador
+// (supabase/esquema.sql, seção 5b). O professor recebe uma senha provisória e troca no 1º acesso.
+Object.assign(API, {
+  async listarProfessores() {
+    return q(sb.from('professores').select('id,nome,email,papel,ativo,trocar_senha,criado_em,simulados(count)')
+      .order('nome'));
+  },
+  async criarProfessor(email, nome, senha, papel) {
+    return q(sb.rpc('criar_professor', { email_prof: email, nome_prof: nome, senha_provisoria: senha, papel_prof: papel }));
+  },
+  async redefinirSenha(id, senha) {
+    return q(sb.rpc('redefinir_senha_professor', { prof_id: id, senha_provisoria: senha }));
+  },
+  async definirAtivo(id, ativar) {
+    return q(sb.rpc('definir_professor_ativo', { prof_id: id, ativar: ativar }));
+  }
+});
+
+/** Senha provisória fácil de ditar: sem letras que se confundem (0/O, 1/l/I). */
+function senhaProvisoria() {
+  const alfabeto = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const v = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(v, b => alfabeto[b % alfabeto.length]).join('');
+}
+/** Caixa com os dados para passar ao professor (e botão de copiar). */
+function caixaAcesso(email, senha, titulo) {
+  const c = criar('div', 'ok-box');
+  c.append(criar('b', '', titulo));
+  const texto = 'Área do Professor: ' + new URL('professor.html', location.href).href +
+    '\nE-mail: ' + email + '\nSenha provisória: ' + senha + '\n(no primeiro acesso, o sistema pede para criar uma senha nova)';
+  const pre = criar('pre', 'small', texto);
+  pre.style.cssText = 'white-space:pre-wrap;background:#fff;padding:10px;border-radius:8px;margin:8px 0';
+  const copiar = criar('button', 'btn secondary', '📋 Copiar para enviar ao professor');
+  copiar.onclick = () => {
+    const pronto = () => { copiar.textContent = '✓ Copiado!'; setTimeout(() => { copiar.textContent = '📋 Copiar para enviar ao professor'; }, 2000); };
+    if (navigator.clipboard) navigator.clipboard.writeText(texto).then(pronto).catch(() => alert(texto)); else alert(texto);
+  };
+  c.append(pre, copiar);
+  return c;
+}
+
+function abrirProfessores(aviso) {
+  carregando('Carregando os professores...');
+  api('listarProfessores').then(lista => {
+    mostrarTela('Professores');
+    const caixa = $('professoresConteudo');
+    caixa.innerHTML = '';
+    if (aviso) caixa.append(aviso);
+
+    // cadastrar
+    const form = criar('div', 'card');
+    form.append(criar('h2', '', 'Cadastrar professor'));
+    const nome = criar('input'); nome.type = 'text'; nome.placeholder = 'Nome do professor';
+    const email = criar('input'); email.type = 'email'; email.placeholder = 'E-mail do professor';
+    const linhaSenha = criar('div', 'link-box');
+    const senha = criar('input'); senha.type = 'text'; senha.value = senhaProvisoria();
+    senha.title = 'Senha provisória (o professor troca no 1º acesso)';
+    const outra = criar('button', 'btn secondary', '↻ Outra senha');
+    outra.onclick = () => { senha.value = senhaProvisoria(); };
+    linhaSenha.append(senha, outra);
+    const papelLinha = criar('label');
+    papelLinha.style.cssText = 'display:flex;gap:10px;align-items:center;margin:6px 0 12px;cursor:pointer';
+    const admin = criar('input'); admin.type = 'checkbox'; admin.style.cssText = 'width:20px;height:20px';
+    papelLinha.append(admin, criar('span', '', 'Também é administrador (pode cadastrar professores e ver todos os simulados)'));
+    const salvar = criar('button', 'btn primary', 'Cadastrar');
+    const erro = criar('div', 'erro');
+    salvar.onclick = () => {
+      erro.textContent = '';
+      if (!nome.value.trim() || !email.value.trim()) { erro.textContent = 'Preencha o nome e o e-mail.'; return; }
+      salvar.disabled = true;
+      api('criarProfessor', email.value.trim(), nome.value.trim(), senha.value, admin.checked ? 'admin' : 'professor')
+        .then(() => abrirProfessores(caixaAcesso(email.value.trim().toLowerCase(), senha.value,
+          '✅ ' + nome.value.trim() + ' foi cadastrado(a). Envie estes dados para ele(a):')))
+        .catch(err => { erro.textContent = err.message; salvar.disabled = false; });
+    };
+    form.append(criar('p', 'muted', 'O professor entra com o e-mail e esta senha provisória, e cria a dele no 1º acesso.'),
+      nome, email, linhaSenha, papelLinha, salvar, erro);
+
+    // lista
+    const card = criar('div', 'card');
+    card.append(criar('h2', '', 'Professores da escola (' + lista.length + ')'));
+    const t = criar('table');
+    t.innerHTML = '<tr><th>Nome</th><th>E-mail</th><th>Situação</th><th>Simulados</th><th></th></tr>';
+    lista.forEach(p => {
+      const tr = criar('tr');
+      const situacao = !p.ativo ? '⛔ desativado' : (p.papel === 'admin' ? '⭐ administrador' : 'professor') +
+        (p.trocar_senha ? ' · senha provisória' : '');
+      [p.nome, p.email, situacao, String(contar(p.simulados))].forEach(v => tr.append(criar('td', '', v)));
+      const acoes = criar('td');
+      if (p.id !== eu.id) {
+        const novaSenha = criar('button', 'link-neutro', 'nova senha');
+        novaSenha.onclick = () => {
+          const s = senhaProvisoria();
+          if (!confirm('Criar uma nova senha provisória para ' + p.nome + '? A senha atual deixa de valer.')) return;
+          api('redefinirSenha', p.id, s)
+            .then(() => abrirProfessores(caixaAcesso(p.email, s, '✅ Nova senha provisória de ' + p.nome + ':')))
+            .catch(err => alert(err.message));
+        };
+        const ativo = criar('button', p.ativo ? 'link-perigo' : 'link-neutro', p.ativo ? 'desativar' : 'reativar');
+        ativo.onclick = () => {
+          if (p.ativo && !confirm('Desativar ' + p.nome + '? Ele(a) não consegue mais entrar. Os simulados dele(a) continuam.')) return;
+          api('definirAtivo', p.id, !p.ativo).then(() => abrirProfessores()).catch(err => alert(err.message));
+        };
+        acoes.append(novaSenha, ativo);
+      } else {
+        acoes.append(criar('span', 'muted small', '(você)'));
+      }
+      tr.append(acoes);
+      t.append(tr);
+    });
+    card.append(t);
+    caixa.append(form, card);
+  }).catch(err => { alert('Erro: ' + err.message); abrirPainel(); });
+}
+$('btnProfessores').onclick = () => abrirProfessores();
 
 // ================= início =================
 iniciar();
