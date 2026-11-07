@@ -858,11 +858,20 @@ function interpretarGabarito(texto, total) {
   // cada linha viraria "1 -> A". (Só se repetir: "05" + "A B C D E" pode existir uma vez.)
   const linhaEmBranco = /\b\d{1,3}\s+A\s+B\s+C\s+D(?:\s+E)?\b/g;
   if ((t.match(linhaEmBranco) || []).length >= 3) t = t.replace(linhaEmBranco, ' ');
+  // Grade da folha de respostas com os números longe das letras (Olimpíada de Português:
+  // "10." "11." ... e depois "A B C D E" "A B C D E"...): as letras repetidas saem.
+  const gradeEmBranco = /\bA\s+B\s+C\s+D\s+E\b/g;
+  if ((t.match(gradeEmBranco) || []).length >= 3) t = t.replace(gradeEmBranco, ' ');
   // Folha de soluções (ex.: OBMEP, "QUESTÃO 1 – ALTERNATIVA A" seguida da explicação):
   // só essas linhas importam; o texto das soluções tem letras e números soltos que confundiriam.
   const resolvidas = {};
   for (const m of t.matchAll(/quest[ãa]o\s*(\d{1,3})\s*[-–—:]\s*(?:alternativa|resposta)\s*\(?([A-E])\)?/gi)) {
     resolvidas[Number(m[1])] = m[2].toUpperCase();
+  }
+  // Gabarito comentado (ex.: OBOQ, "Questão 1. (Cinética)" e, na linha de baixo,
+  // "Resposta correta: c) 53 kJ/mol").
+  for (const m of t.matchAll(/quest[ãa]o\s*(\d{1,3})\b[^\n]{0,120}\n\s*resposta\s+correta\s*:?\s*\(?([A-Ea-e])\)/gi)) {
+    resolvidas[Number(m[1])] = resolvidas[Number(m[1])] || m[2].toUpperCase();
   }
   // Tabelas com o código da questão (ex.: ONC, "NÍVEL A: 9º ANO" + "A1 A2 ... A15" + "C D D ... B"):
   // um gabarito por nível. "NULA" = anulada; "AouB" (duas certas) fica com a 1ª letra.

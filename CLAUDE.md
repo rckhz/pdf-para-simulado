@@ -349,7 +349,7 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     texto "discursivas: …"; as questões depois dela saem do simulado (com aviso);
   - erros claros: prova de SOMATÓRIA (UEM/UFSC: "04)" e "08)" sem "03)") e PDF escaneado;
   - gabarito: "Q1 (c); Q2 (a)" e um conjunto por "Nível Jr/I/II/III" (OBF, `niveis`).
-  - Lista completa para regressão: `dev_local/testes/lista_provas.txt` (57 provas).
+  - Lista completa para regressão: `dev_local/testes/lista_provas.txt` (64 provas desde a v9).
 - **v8 (2026-11-07): OLITEF e OBB (`dev_local/provas/novos4/`)**
   - OLITEF (Tesouro Direto, níveis 2 e 3): alternativa = letra num círculo separada do texto
     ("A \t Piorar...", às vezes duas na mesma linha); código da matriz "MA01/MT04" acima de cada
@@ -366,6 +366,13 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     (`sem_folha_em_branco` no Python e `linhaEmBranco` no `interpretarGabarito`); gabarito com a
     resposta PINTADA (OBB oficial, célula amarela) é lido por `respostas_pintadas` /
     `texto_do_gabarito` (no site novo, o PDF do gabarito passa por ele).
+- **v9 (2026-11-07): OBI, Olimpíada de Português, OBF 2024, OBOQ (`dev_local/provas/novos5/`)**
+  - OBI: faixa escura vazia do tamanho da faixa "Questão N" abre um texto para as próximas
+    questões; número da folha sozinho no alto (Olimpíada de Português) é cabeçalho; logotipo da
+    SBF (OBF 2024/2025, vai até 12% da folha) é cabeçalho;
+  - títulos da OBI, Olimpíada de Português, OBF (antes vazio) e OBOQ;
+  - gabarito: grade "A B C D E" repetida (folha em branco) sai; "Questão 1. (...)" +
+    "Resposta correta: c)" (OBOQ). Detalhes no CLAUDE.md do simulados-escola.
 - Opção recusada para anuladas: "mostrar a nota com gabarito incompleto". Motivo: uma questão
   esquecida viraria "anulada" sem o professor perceber.
 

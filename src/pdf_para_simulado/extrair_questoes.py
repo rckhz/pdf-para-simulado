@@ -307,8 +307,10 @@ def textos_de_rodape(doc):
         rects += [d["rect"] for d in pagina.get_drawings()]
         for r in rects:
             if (r.y0 > pagina.rect.height * 0.85 and r.y1 <= pagina.rect.height + 1
-                    or r.y1 < pagina.rect.height * 0.12 and r.y0 >= -20):   # (ou no alto: logotipo do cabeçalho,
-                                                                             # que pode sair um pouco da folha, ex.: OBB)
+                    or r.y1 < pagina.rect.height * 0.12 and r.y0 >= -20   # (ou no alto: logotipo do cabeçalho,
+                                                                           # que pode sair um pouco da folha, ex.: OBB)
+                    or 0 <= r.y0 < pagina.rect.height * 0.05 and r.y1 < pagina.rect.height * 0.15):
+                # (logotipo alto que começa colado no topo, ex.: OBF 2024, o da SBF vai até 12,1%)
                 vistas.add(("fig",) + tuple(round(v) for v in r))
         for k in vistas:
             figuras[k] = figuras.get(k, 0) + 1
@@ -538,6 +540,15 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                     if (t.isdigit() and abs(int(t) - (pagina.number + 1)) <= 3
                             and l["bbox"][1] < fundo_cabecalho and l["bbox"][3] < fundo_cabecalho + 10):
                         fundo_cabecalho = max(fundo_cabecalho, l["bbox"][3])
+        # Número da folha sozinho bem no alto, no canto direito ou no meio (ex.: Olimpíada de
+        # Português, "3" no canto de cima): também é cabeçalho (senão gruda na questão anterior).
+        for b in blocos:
+            for l in b.get("lines", []):
+                t = "".join(sp["text"] for sp in l["spans"]).strip()
+                x0, y0, x1, y1 = l["bbox"]
+                if (t.isdigit() and abs(int(t) - (pagina.number + 1)) <= 1 and y1 < altura * 0.08
+                        and (x0 > largura_pag * 0.8 or abs((x0 + x1) / 2 - largura_pag / 2) < 20)):
+                    fundo_cabecalho = max(fundo_cabecalho, y1)
 
     # Modelo "Questão 01" com a palavra e o número SEPARADOS (ex.: "Questão" + "01" numa
     # caixinha ao lado, em outra fonte). Junta a palavra com o número que está à direita,
@@ -942,6 +953,18 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                 if j_junto is not None:
                     usados.add(j_junto)
                 break
+
+    # Faixa do MESMO tamanho da faixa de "Questão N", mas sem texto nenhum (ex.: OBI, faixa
+    # escura vazia e, embaixo, o título "Processadores" e um texto): é um texto que vale para
+    # as próximas questões (como "Leia o texto abaixo.").
+    if modo == "rotulo":
+        rotulos = [b.rect for b in barreiras if b.tipo == "selo"]
+        for f in faixas_cor:
+            if (any(abs(f.height - r.height) < 2 and abs(f.width - r.width) < 6 and abs(f.x0 - r.x0) < 6
+                    for r in rotulos)
+                    and not any(f.intersects(b.rect) for b in barreiras)
+                    and not any(f.intersects(r) for r in retangulos_linhas)):
+                barreiras.append(Barreira("instrucao", pymupdf.Rect(f), texto="Leia o texto abaixo."))
 
     # Etiqueta/desenho em volta do texto do rodapé (ex.: o quadrinho escuro com o
     # número da página): também é rodapé.
@@ -1922,6 +1945,7 @@ def trechos_da_imagem(q):
 # =====================================================================
 
 PADRAO_LINHA_EM_BRANCO = re.compile(r"\b\d{1,3}\s+A\s+B\s+C\s+D(?:\s+E)?\b")
+PADRAO_GRADE_EM_BRANCO = re.compile(r"\bA\s+B\s+C\s+D\s+E\b")
 
 
 def sem_folha_em_branco(texto):
@@ -1929,7 +1953,11 @@ def sem_folha_em_branco(texto):
     isso, cada linha viraria "1 -> A". (Só se repetir: uma linha "05" + "A B C D E" de verdade
     pode acontecer uma vez num gabarito em tabela.)"""
     if len(PADRAO_LINHA_EM_BRANCO.findall(texto)) >= 3:
-        return PADRAO_LINHA_EM_BRANCO.sub(" ", texto)
+        texto = PADRAO_LINHA_EM_BRANCO.sub(" ", texto)
+    # Grade da folha de respostas com os números longe das letras (Olimpíada de Português:
+    # "10." "11." ... e depois "A B C D E" "A B C D E"...): as letras repetidas saem.
+    if len(PADRAO_GRADE_EM_BRANCO.findall(texto)) >= 3:
+        texto = PADRAO_GRADE_EM_BRANCO.sub(" ", texto)
     return texto
 
 
@@ -2009,7 +2037,8 @@ def dia_da_prova(doc):
 
 
 # Títulos genéricos que não identificam a prova (ex.: capa do Vestibulinho).
-PADRAO_TITULO_GENERICO = re.compile(r"caderno\s+de\s+quest|folha\s+de\s+resp|instru[çc]|\.indd\b", re.IGNORECASE)
+PADRAO_TITULO_GENERICO = re.compile(r"caderno\s+de\s+(?:quest|problemas|tarefas)|folha\s+de\s+resp|instru[çc]|"
+                                    r"\.indd\b|espa[çc]o[\s-]*resposta|^\s*[•●]", re.IGNORECASE)
 
 
 def titulo_da_prova(doc):
@@ -2028,9 +2057,9 @@ def titulo_da_prova(doc):
     tamanhos = [round(t) for t, _ in linhas]
     comum = max(set(tamanhos), key=tamanhos.count) if tamanhos else 0
     linhas = [(t, x) for t, x in linhas if len(x) <= 80 and (round(t) > comum or len(linhas) < 4)]
-    if not linhas:
-        return ""
-    titulo = max(linhas)[1]
+    # (sem título na capa, ainda dá para montar o de uma olimpíada; ex.: OBF 2024, capa toda
+    # com a mesma letra)
+    titulo = max(linhas)[1] if linhas else ""
     # ENEM: o maior texto da capa é só "2º DIA" (o logotipo é imagem). Usa o ano e o caderno,
     # que dizem qual gabarito vale (cada cor de caderno tem o seu); o app acrescenta o dia.
     texto_capa = doc[0].get_text()
@@ -2043,22 +2072,45 @@ def titulo_da_prova(doc):
     # Olimpíadas (OBMEP, ONC...): a capa só diz "Nível 1" ou "Fase 1 - 2025"; o nome da olimpíada
     # está no cabeçalho das folhas (ou no nome do arquivo). Monta "OBMEP 2025 · Nível 1 · 1ª fase".
     texto_doc = " ".join(p.get_text() for p in doc) + " " + (doc.metadata or {}).get("title", "")
-    sigla = re.search(r"\b(OBMEP|ONC|OBA|OBF|OBQ|OBB|OLITEF|OBMEP Mirim)(?=\d|\b)", texto_doc)
-    if sigla and sigla.group(1).lower() not in titulo.lower() and len(titulo) <= 25:
-        ano = re.search(r"\b(20\d\d)\b", titulo + " " + texto_capa) or re.search(r"(20\d\d)", texto_doc)
-        nivel = re.search(r"\b(?:n[íi]vel\s*([A-Z0-9]{1,5})|(mirim)\s*(\d))\b", titulo + " " + texto_capa, re.IGNORECASE)
-        fase = re.search(r"\bfase\s*(\d)|(\d)\s*[ªa]\s*fase", titulo + " " + texto_capa, re.IGNORECASE)
+    sigla = re.search(r"\b(OBMEP|ONC|OBA|OBF|OBQ|OBB|OLITEF|OBMEP Mirim|OBI|OBOQ|OBQJr)(?=\d|\b)", texto_doc)
+    # Olimpíada de Português: o nome vem por extenso ("olimpiadadeportugues" no cabeçalho).
+    if not sigla and re.search(r"olimp[ií]ada\s*de\s*portugu[êe]s", texto_doc, re.IGNORECASE):
+        sigla = re.search(r"(Olimpíada de Português)", "Olimpíada de Português")
+    # (título comprido também é trocado se for um pedaço de frase, ex.: OBI, capa só com as
+    # instruções, ou só a fase: "1ª fase – 2026 – Categoria C – 6º e 7º anos")
+    if sigla and sigla.group(1).lower() not in titulo.lower() and (
+            len(titulo) <= 25 or titulo[:1].islower() or re.match(r"\d\s*ª\s*fase", titulo)):
+        # Capa só com as instruções (ex.: OBI): o nível e a fase estão na folha seguinte.
+        inicio = titulo + " " + texto_capa
+        if len(doc) > 1 and not re.search(r"n[íi]vel|categoria", inicio, re.IGNORECASE):
+            inicio += " " + doc[1].get_text()
+        # o ano colado na sigla vale mais, o que mais aparece ("OBI2025" no pé das folhas; a folha
+        # de respostas da OBI 2025 ainda diz "OBI2024")
+        anos = re.findall(re.escape(sigla.group(1)) + r"\s*(20\d\d)\b", texto_doc)
+        ano = (re.search(r"(.+)", max(set(anos), key=anos.count)) if anos else None) or (
+            re.search(r"\b(20\d\d)\b", inicio) or re.search(r"(20\d\d)", texto_doc))
+        nivel = re.search(r"\b(?:n[íi]vel\s*(J[úu]nior|[A-Z0-9]{1,5})|(mirim)\s*(\d))\b", inicio, re.IGNORECASE)
+        fase = re.search(r"\bfase\s*(\d|I{1,3}\b)|(\d)\s*[ªa]\s*fase", inicio, re.IGNORECASE)
+        modalidade = re.search(r"\bModalidade\s+(Inicia[çc][ãa]o|Programa[çc][ãa]o)", inicio, re.IGNORECASE)
+        categoria = re.search(r"\bCategoria\s+([A-Z])\b", inicio)
         partes = [sigla.group(1) + (" " + ano.group(1) if ano else "")]
+        if modalidade:
+            partes.append(modalidade.group(1).capitalize())
+        if categoria:
+            partes.append(f"Categoria {categoria.group(1)}")
         if nivel:
-            partes.append(f"Nível {nivel.group(1).upper() if nivel.group(1).isalpha() and len(nivel.group(1)) == 1 else nivel.group(1).capitalize()}"
+            partes.append(f"Nível {nivel.group(1).upper() if nivel.group(1).isalpha() and len(nivel.group(1)) == 1 or re.fullmatch('I{1,3}', nivel.group(1)) else nivel.group(1).capitalize()}"
                           if nivel.group(1) else f"Mirim {nivel.group(3)}")
         if fase:
-            partes.append(f"{fase.group(1) or fase.group(2)}ª fase")
+            n_fase = fase.group(1) or fase.group(2)
+            partes.append(f"{len(n_fase) if n_fase.upper().strip('I') == '' else n_fase}ª fase")
         titulo = " · ".join(partes)
     # Canguru: "Association Kangourou sans Frontières 2023 – Nível B (Benjamin)" -> "Canguru 2023 · Nível B".
     canguru = re.search(r"Kangourou.*?(20\d\d).*?N[íi]vel\s+([A-Z])\b", titulo)
     if canguru:
         titulo = f"Canguru {canguru.group(1)} · Nível {canguru.group(2)}"
+    if not titulo:
+        return ""
     semestre =re.search(r"\b(\d)\s*[ºo°]?\s*sem(?:estre)?\.?\s*(?:/|de|\|)?\s*(\d{4})?",
                          doc[0].get_text(), re.IGNORECASE)
     if semestre and not re.search(r"sem", titulo, re.IGNORECASE):
