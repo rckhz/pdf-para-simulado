@@ -1,5 +1,0 @@
-{
-  "buildCommand": "node gerar_config.js",
-  "outputDirectory": "public",
-  "cleanUrls": true
-}

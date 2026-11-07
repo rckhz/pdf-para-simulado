@@ -20,9 +20,3 @@ simulado_extraido/
 # Ferramentas e provas de teste do desenvolvedor (local, nunca vai para o GitHub)
 dev_local/
 
-# site dos alunos: pasta montada pela Vercel ao publicar
-site/public/
-
-# site novo (Supabase): pasta montada na publicação e config local
-web/public/
-web/config.js

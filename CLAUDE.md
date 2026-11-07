@@ -7,6 +7,11 @@
 > **Notas privadas** (link do app publicado, editor do Apps Script, sessão do Chrome, provas de
 > teste): `dev_local/NOTAS-PRIVADAS.md`. A pasta `dev_local/` fica só neste computador (está
 > no `.gitignore`); leia esse arquivo antes de testar ou publicar.
+>
+> **Site próprio (Supabase, várias escolas):** fica no repositório PRIVADO
+> `github.com/rckhz/simulados-escola` (pasta `Desktop/simulados-escola`). Este repositório é só o
+> app do Google Apps Script. O extrator (`extrair_questoes.py`) existe nos dois: uma melhoria
+> feita num precisa ser copiada para o outro.
 
 ---
 
@@ -52,13 +57,6 @@ Aluno abre ?prova=ID ──► Aluno.html mostra imagens, envia respostas ──
 | `src/pdf_para_simulado/gerar_apps_script.py` | Embute o `.py` no `Extrator.html` |
 | `src/pdf_para_simulado/empacotar.py` | Monta o ZIP para o professor (troca `{{LINK_DO_PROFESSOR}}` só dentro do ZIP) |
 | `entrega/` | 3 textos simples para o professor (ler primeiro, instalar, usar) |
-| `site/` | **Site dos alunos** (Vercel): `index.html` GERADO do `Aluno.html` por `gerar_site.py` (não edite à mão); `gerar_config.js` + `vercel.json` montam `public/` com o `config.js` (variável `APP_URL` da Vercel) |
-| `src/pdf_para_simulado/gerar_site.py` | Gera `site/index.html` a partir do `Aluno.html` (rode sempre que mudar o `Aluno.html`) |
-| `PLANO_SUPABASE.md` | **Plano do site próprio** (Supabase + Cloudflare Pages), em construção por etapas. Leia antes de mexer em `web/` ou `supabase/` |
-| `supabase/esquema.sql` | Banco do site próprio: tabelas, RLS, correção e código da prova DENTRO do banco, funções do aluno (`provas_abertas`, `prova_por_codigo`, `dados_prova`, `enviar_respostas`) e do professor; cadastro de professores pelo admin DENTRO do banco (`criar_professor` etc., escreve em `auth.users`, sem chave secreta). Rode no SQL Editor (pode rodar de novo). Testes em `dev_local/supabase/` (`teste_banco.sql`, `teste_aluno.js`, `teste_professor.js`, `teste_admin.js`; `rodar_sql.js` usa a sessão do painel no Chrome do CDP) |
-| `web/` | Site próprio: `index.html` (aluno/professor), `aluno.html` (código ou link; fala com o Supabase por `rpc()`; imagens da pasta pública `questoes`), `professor.html` (Área do Professor: veio do `apps_script/Professor.html`, com a camada `API`/`api()` falando com o Supabase nos mesmos formatos do Code.gs; login e-mail+senha, 1ª conta vira administrador, imagens viram WebP ~55 KB, gabarito por arquivo lido no navegador: SheetJS/PyMuPDF/Tesseract.js, código + prazo, Excel; tela "Professores" do administrador: cadastrar com senha provisória, nova senha, desativar), `extrator.js` (GERADO por `gerar_apps_script.py`). `gerar_config.js` monta `public/` com `SUPABASE_URL` + `SUPABASE_KEY` (chave PÚBLICA; recusa a secreta) e o `_headers` (cabeçalhos do Cloudflare Pages) |
-| `INSTALAR_ESCOLA.md` | Guia de instalação por escola: Supabase (esquema, **desligar "Allow new users to sign up"**, 1º usuário), Cloudflare Pages (raiz `web`, build `node gerar_config.js`, saída `public`), 1º acesso do admin, despertador |
-| `.github/workflows/despertador.yml` | Acessa o banco de cada escola 2×/semana (o Supabase grátis pausa após 7 dias). Lista no segredo `ESCOLAS` do GitHub: uma linha "URL chave_pública" por escola |
 
 O pacote Python se chama `pdf_para_simulado` (antes era `escola`); o projeto no `pyproject.toml`
 se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-simulado`.
@@ -68,8 +66,7 @@ se chama `pdf-para-simulado`, igual ao repositório `github.com/rckhz/pdf-para-s
 ```bash
 uv sync                                                    # prepara o ambiente (depois de clonar/mover a pasta)
 uv run src/pdf_para_simulado/extrair_questoes.py prova.pdf # extrai pelo terminal -> saida/
-uv run src/pdf_para_simulado/gerar_apps_script.py          # OBRIGATÓRIO após mudar o extrator (gera Extrator.html e web/extrator.js)
-uv run src/pdf_para_simulado/gerar_site.py                 # OBRIGATÓRIO após mudar o Aluno.html
+uv run src/pdf_para_simulado/gerar_apps_script.py          # OBRIGATÓRIO após mudar o extrator (gera o Extrator.html)
 uv run src/pdf_para_simulado/empacotar.py "<link ?professor>"  # ZIP do professor
 ```
 
@@ -240,15 +237,12 @@ Cada questão tem botões A–E (só as letras que existem) e **"Anular questão
 
 ## 6. Página do aluno (`Aluno.html`)
 
-- **Dois lugares, um arquivo só:** dentro do Google (`.../exec?prova=ID`) e no **site dos alunos**
-  (Vercel, `site/`). Motivo: em navegador com várias contas Google, o link `script.google.com` vira
-  `.../u/1/...` e mostra "Não foi possível abrir o arquivo" (defeito do Google, sem conserto no
-  Apps Script). Toda chamada ao servidor passa por `servidor(funcao, ...args)`: no Google usa
-  `google.script.run`; no site faz `fetch` POST (texto JSON, `credentials: 'omit'`, sem contas) no
-  `doPost` do `Code.gs`, que só aceita `simuladosAbertos`, `dadosSimulado`, `imagemQuestao`,
-  `enviarRespostas`. Professor configura o endereço do site em ⚙ Configurações (`SITE_ALUNOS`);
-  aí `linkAluno_` passa a dar o link do site. A Área do Professor continua só no Google.
-- Script Property nova: `SITE_ALUNOS` (endereço do site, sem barra no fim).
+- Toda chamada ao servidor passa por `servidor(funcao, ...args)`: no Google usa
+  `google.script.run`; fora dele faz `fetch` POST no `doPost` do `Code.gs` (só aceita
+  `simuladosAbertos`, `dadosSimulado`, `imagemQuestao`, `enviarRespostas`). Isso servia ao antigo
+  "site dos alunos" na Vercel (pasta `site/`, removida em 2026-11-07: o site próprio agora é o
+  repositório `simulados-escola`). Se a Script Property `SITE_ALUNOS` estiver vazia (⚙
+  Configurações), os links dos alunos são os do Google.
 
 - Nome + turma, uma questão por vez (imagem), grade de resumo, botão de revisão antes de enviar.
 - **Rascunho** em `localStorage` por `DIAS_RASCUNHO` dias: se fechar a aba, recupera as

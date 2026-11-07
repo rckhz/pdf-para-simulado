@@ -17,8 +17,6 @@ from pathlib import Path
 PASTA_PROJETO = Path(__file__).resolve().parents[2]
 ORIGEM = Path(__file__).resolve().parent / "extrair_questoes.py"
 DESTINO = PASTA_PROJETO / "apps_script" / "Extrator.html"
-# O site próprio (pasta web/, ver PLANO_SUPABASE.md) usa o mesmo extrator, num arquivo .js comum.
-DESTINO_WEB = PASTA_PROJETO / "web" / "extrator.js"
 
 
 def main():
@@ -31,12 +29,6 @@ def main():
         encoding="utf-8",
     )
     print(f"OK: {DESTINO} ({len(codigo) // 1024} KB de Python)")
-    DESTINO_WEB.write_text(
-        "// GERADO AUTOMATICAMENTE por src/pdf_para_simulado/gerar_apps_script.py. Não edite à mão.\n"
-        f"const EXTRATOR_PY_B64 = \"{b64}\";\n",
-        encoding="utf-8",
-    )
-    print(f"OK: {DESTINO_WEB}")
 
 
 if __name__ == "__main__":
