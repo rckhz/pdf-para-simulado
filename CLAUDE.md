@@ -355,7 +355,23 @@ node gerar_interpretar.js && node teste_interpretar.js && node fuvest2027/teste_
     texto "discursivas: …"; as questões depois dela saem do simulado (com aviso);
   - erros claros: prova de SOMATÓRIA (UEM/UFSC: "04)" e "08)" sem "03)") e PDF escaneado;
   - gabarito: "Q1 (c); Q2 (a)" e um conjunto por "Nível Jr/I/II/III" (OBF, `niveis`).
-  - Lista completa para regressão: `dev_local/testes/lista_provas.txt` (54 provas).
+  - Lista completa para regressão: `dev_local/testes/lista_provas.txt` (57 provas).
+- **v8 (2026-11-07): OLITEF e OBB (`dev_local/provas/novos4/`)**
+  - OLITEF (Tesouro Direto, níveis 2 e 3): alternativa = letra num círculo separada do texto
+    ("A \t Piorar...", às vezes duas na mesma linha); código da matriz "MA01/MT04" acima de cada
+    questão some; "MA02 – RENDA FIXA" + "Questões de 11 a 18" é título de seção (matéria "Renda
+    Fixa"); a página "GABARITO PROVA – NÍVEL 2" encerra a prova (`PADRAO_GABARITO_FIM`) e é lida
+    como gabarito ("Questão 01 – Alternativa B"); título "OLITEF 2025 · Nível 2";
+  - OBB (Biologia): número "1) Uma jovem..." sem negrito (só na passada `sem_negrito`); logotipo do
+    cabeçalho que sai um pouco da folha (y0 até -20) é cabeçalho; fio "_____" acima do texto do
+    rodapé é rodapé; a gradinha "GQ - a b c d e" (imagem baixinha igual repetida, `("img", digest)`
+    em `textos_de_rodape`) some, mas não a etiqueta do rótulo "Questão 02" da Etec 2024;
+    instrução quebrada em 2 linhas ("...às questões" + "1 a 4" no topo do bloco seguinte) junta com o
+    bloco de baixo da MESMA coluna (antes juntava com o da outra coluna);
+  - gabarito: folha de respostas em branco ("1 A B C D E" repetido) não vira "tudo A"
+    (`sem_folha_em_branco` no Python e `linhaEmBranco` no `interpretarGabarito`); gabarito com a
+    resposta PINTADA (OBB oficial, célula amarela) é lido por `respostas_pintadas` /
+    `texto_do_gabarito` (no site novo, o PDF do gabarito passa por ele).
 - Opção recusada para anuladas: "mostrar a nota com gabarito incompleto". Motivo: uma questão
   esquecida viraria "anulada" sem o professor perceber.
 

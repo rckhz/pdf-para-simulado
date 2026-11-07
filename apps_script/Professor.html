@@ -854,6 +854,10 @@ async function prepararParaEnvio(arquivo) {
  */
 function interpretarGabarito(texto, total) {
   let t = String(texto || '');
+  // Folha de respostas em branco ("1 A B C D E" em cada linha, OBB): não é gabarito. Sem isto,
+  // cada linha viraria "1 -> A". (Só se repetir: "05" + "A B C D E" pode existir uma vez.)
+  const linhaEmBranco = /\b\d{1,3}\s+A\s+B\s+C\s+D(?:\s+E)?\b/g;
+  if ((t.match(linhaEmBranco) || []).length >= 3) t = t.replace(linhaEmBranco, ' ');
   // Folha de soluções (ex.: OBMEP, "QUESTÃO 1 – ALTERNATIVA A" seguida da explicação):
   // só essas linhas importam; o texto das soluções tem letras e números soltos que confundiriam.
   const resolvidas = {};

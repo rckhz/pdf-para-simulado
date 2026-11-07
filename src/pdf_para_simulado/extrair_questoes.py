@@ -240,6 +240,8 @@ PADRAO_DISCURSIVAS = re.compile(
     r"\s*(?:parte\s+(?:[IVX]{1,4}|\d)\s*[-–—:]?\s*)?(?:quest[õo]es\s+)?(?:anal[íi]tico[-\s]*expositivas|"
     r"discursivas|dissertativas|abertas)\s*|\s*parte\s+(?:discursiva|dissertativa)\s*", re.IGNORECASE)
 # Páginas que são só a folha/cartão de respostas, sem questões (ex.: última página).
+PADRAO_GABARITO_FIM = re.compile(r"\s*gabarito(\s+(oficial|definitivo|preliminar))?(\s+(da\s+)?prova)?"
+                                 r"(\s*[–-]\s*n[íi]vel\s+\w+)?\s*", re.IGNORECASE)
 PADRAO_FOLHA_RESPOSTAS = re.compile(r"folha\s+de\s+respostas|cart[ãa]o[\s-]+resposta", re.IGNORECASE)
 
 
@@ -305,11 +307,21 @@ def textos_de_rodape(doc):
         rects += [d["rect"] for d in pagina.get_drawings()]
         for r in rects:
             if (r.y0 > pagina.rect.height * 0.85 and r.y1 <= pagina.rect.height + 1
-                    or r.y1 < pagina.rect.height * 0.12 and r.y0 >= -1):   # (ou no alto: logotipo do cabeçalho)
+                    or r.y1 < pagina.rect.height * 0.12 and r.y0 >= -20):   # (ou no alto: logotipo do cabeçalho,
+                                                                             # que pode sair um pouco da folha, ex.: OBB)
                 vistas.add(("fig",) + tuple(round(v) for v in r))
         for k in vistas:
             figuras[k] = figuras.get(k, 0) + 1
+    # Imagem baixinha IGUAL repetida embaixo de muitas questões (OBB: a gradinha "GQ - a b c d e"
+    # para o aluno marcar a resposta): não é conteúdo. Guardada como ("img", digest).
+    repetidas = {}
+    for pagina in doc:
+        for info in pagina.get_image_info(hashes=True):
+            r = pymupdf.Rect(info["bbox"])
+            if r.height < 40 and r.width > 60:
+                repetidas[info["digest"]] = repetidas.get(info["digest"], 0) + 1
     return (chaves | {("y", y) for y, n in alturas.items() if n >= minimo}
+            | {("img", dg) for dg, n in repetidas.items() if n >= max(8, len(doc))}
             # (no alto, só o que está em quase todas as folhas: uma caixa "Leia o texto..." pode
             # cair no mesmo lugar em algumas páginas)
             | {k for k, n in figuras.items() if n >= minimo and (k[2] > 300 or n >= len(doc) * 0.6)})
@@ -593,6 +605,12 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
         fora_do_meio = abs((junto.y0 + junto.y1) / 2 - (r.y0 + r.y1) / 2) > 0.2 * junto.height
         return junto.width < pagina.rect.width * 0.4 and (junto.height > 2.5 * r.height or fora_do_meio)
 
+    # Linhas de texto do rodapé repetido ("Veja o gabarito em..."): um fio "_____" logo acima
+    # delas também é rodapé.
+    linhas_rodape_texto = [pymupdf.Rect(l["bbox"]) for b in blocos if b["type"] == 0 for l in b["lines"]
+                           if l["bbox"][1] > altura * 0.88
+                           and len(re.findall(r"[A-Za-zÀ-ÿ]", chave_rodape("".join(s["text"] for s in l["spans"])))) >= 4
+                           and chave_rodape("".join(s["text"] for s in l["spans"]).strip()) in rodape]
     for bloco in blocos:
         if bloco["type"] != 0:   # tipo 0 = texto (imagens tratamos abaixo)
             continue
@@ -622,7 +640,10 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                     rect_linha.y0 > altura * (0.93 if chave == "" else 0.88) and chave in rodape
                     and numero_da_folha) or (
                     rect_linha.y0 > altura * 0.88 and len(texto_linha) <= 15
-                    and ("y", round(linha["bbox"][1], 1)) in rodape):
+                    and ("y", round(linha["bbox"][1], 1)) in rodape) or (
+                    # fio feito de "_____" logo acima do texto do rodapé (OBB)
+                    rect_linha.y0 > altura * 0.88 and re.fullmatch(r"[_\s]{20,}", texto_linha)
+                    and any(abs(r2.y0 - rect_linha.y1) < 15 for r2 in linhas_rodape_texto)):
                 topo_rodape = min(topo_rodape, rect_linha.y0)
                 linhas_rodape.append(pymupdf.Rect(linha["bbox"]))
                 continue
@@ -642,6 +663,11 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                 tipo = "rascunho" if modo == "numero" and texto_linha.strip().lower() == "rascunho" else "fim"
                 rect_fim = rect_linha if modo == "rotulo" else juntar_desenhos_que_tocam(rect_linha, desenhos)
                 barreiras.append(Barreira(tipo, rect_fim, texto=texto_linha))
+                continue
+            # Página do gabarito no fim do caderno ("GABARITO PROVA – NÍVEL 2", OLITEF): acabou a prova.
+            if (modo in ("rotulo", "numero") and PADRAO_GABARITO_FIM.fullmatch(texto_linha)
+                    and (primeiro["flags"] & 16 or re.search(r"bold|black|heavy", primeiro["font"], re.I))):
+                barreiras.append(Barreira("fim", rect_linha, texto=texto_linha))
                 continue
             if modo in ("rotulo", "numero") and PADRAO_DISCURSIVAS.fullmatch(texto_linha) and (
                     primeiro["flags"] & 16 or re.search(r"bold|black|heavy", primeiro["font"], re.I)):
@@ -665,6 +691,11 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                 m_par = re.match(r"^(\d{3})\)(?:\s|$)", texto_linha)
                 if m_par and int(m_par.group(1)) > 0:
                     m, negrito = m_par, True
+                # OBB: "1) Uma jovem com anemia..." (número com parêntese, sem negrito; o enunciado
+                # começa com maiúscula). Sem negrito, só vale na 2ª passada (sem_negrito).
+                m_obb = re.match(r"^(\d{1,3})\)\s+(?=[A-ZÀ-Ý“\"(])", texto_linha)
+                if m_obb and not m:
+                    m = m_obb
                 # Fuvest: "{02}" sozinho na linha marca a questão; "#####" marca o fim dela.
                 m_chave = re.fullmatch(r"\{(\d{1,3})\}", texto_linha)
                 if m_chave:
@@ -734,6 +765,20 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                                     # a frase (e a caixa dela) também é título: não entra nas imagens
                                     rect_cab = juntar_desenhos_que_tocam(rect_cab | linha_justa(l2), desenhos)
                     barreiras.append(Barreira("cabecalho", rect_cab, texto=texto_cab))
+                    continue
+
+            if modo == "rotulo":
+                # OLITEF: código da matriz acima de cada questão ("MA01/MT04"): não é conteúdo.
+                if re.fullmatch(r"[A-Z]{1,4}\d{1,3}(/[A-Z]{1,4}\d{1,3})+", texto_linha):
+                    escondidos.append(rect_linha)
+                    continue
+                # OLITEF: "MA02 – RENDA FIXA" (código do módulo + matéria) e, embaixo, "Questões
+                # de 11 a 18" (só os números em negrito): título de seção.
+                if (any(sp["flags"] & 16 or re.search(r"bold|black|heavy", sp["font"], re.I)
+                        for sp in linha["spans"] if sp["text"].strip())
+                        and (re.fullmatch(r"[A-Z]{1,3}\d{1,2}\s*[–-]\s*[A-ZÀ-Ý][A-ZÀ-Ý ]{3,}", texto_linha)
+                             or re.fullmatch(r"quest[õo]es\s+de\s+\d{1,3}\s+[ae]\s+\d{1,3}", texto_linha, re.IGNORECASE))):
+                    barreiras.append(Barreira("cabecalho", rect_linha, texto=texto_linha))
                     continue
 
             # Modelo "Questão 01": a própria linha é o rótulo da questão
@@ -865,15 +910,26 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
     for i, linhas in enumerate(blocos_texto):
         if i in usados:
             continue
-        candidatos = [linhas]
-        if i + 1 < len(blocos_texto):
-            prox = blocos_texto[i + 1]
-            # o próximo bloco começa logo abaixo (ou encosta) e não é, sozinho, uma instrução
-            # (ex.: Cotuca, "e) ...jovens." colada em "Leia o texto ... questões 10 e 11.")
-            if (-6 < prox[0][0].y0 - linhas[-1][0].y1 < 8
-                    and not e_instrucao(" ".join(t for _, t in prox), linhas_visuais(prox))):
-                candidatos.append(linhas + prox)
-        for k, junto in enumerate(candidatos):
+        candidatos = []
+        # o próximo bloco começa logo abaixo (ou encosta) e não é, sozinho, uma instrução
+        # (ex.: Cotuca, "e) ...jovens." colada em "Leia o texto ... questões 10 e 11.").
+        # É o da MESMA coluna: na ordem por altura, o seguinte pode ser o da outra coluna
+        # (OBB: "Leia o texto abaixo e responda às questões" + "1 a 4" centralizado embaixo).
+        x0_b, x1_b = min(r.x0 for r, _ in linhas), max(r.x1 for r, _ in linhas)
+        j = next((j for j in range(i + 1, len(blocos_texto))
+                  if j not in usados and -6 < blocos_texto[j][0][0].y0 - linhas[-1][0].y1 < 8
+                  and min(r.x0 for r, _ in blocos_texto[j]) < x1_b and max(r.x1 for r, _ in blocos_texto[j]) > x0_b),
+                 None)
+        if j is not None:
+            prox = blocos_texto[j]
+            if not e_instrucao(" ".join(t for _, t in prox), linhas_visuais(prox)):
+                # Só a 1ª linha do bloco de baixo, se for curta (OBB: "1 a 4" e, no mesmo bloco,
+                # o texto de apoio inteiro); o resto do bloco continua sendo conteúdo.
+                if len(prox) > 1 and len(prox[0][1]) <= 25:
+                    candidatos.append((None, linhas + prox[:1]))
+                candidatos.append((j, linhas + prox))
+        candidatos.insert(0, (None, linhas))
+        for j_junto, junto in candidatos:
             texto_bloco = " ".join(t for _, t in junto)
             if e_instrucao(texto_bloco, linhas_visuais(junto)):
                 rect = pymupdf.Rect(junto[0][0])
@@ -883,8 +939,8 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
                     rect = juntar_desenhos_que_tocam(rect, desenhos)
                 barreiras.append(Barreira("instrucao", rect, texto=texto_bloco,
                                           alvos=numeros_citados(texto_bloco)))
-                if k == 1:
-                    usados.add(i + 1)
+                if j_junto is not None:
+                    usados.add(j_junto)
                 break
 
     # Etiqueta/desenho em volta do texto do rodapé (ex.: o quadrinho escuro com o
@@ -902,8 +958,18 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
         return False
 
     # --- Imagens ---
-    for info in pagina.get_image_info():
+    imgs_repetidas = {k[1] for k in rodape if isinstance(k, tuple) and k[0] == "img"}
+    gradinhas = []
+    for info in pagina.get_image_info(hashes=bool(imgs_repetidas)):
         r = pymupdf.Rect(info["bbox"])
+        # gradinha "GQ" repetida (ver textos_de_rodape); não a etiqueta do rótulo "Questão 02",
+        # que também é uma imagem baixinha repetida (ex.: Etec 2024)
+        if info.get("digest") in imgs_repetidas and not any(
+                b.tipo in ("selo", "cabecalho", "instrucao") and b.rect.intersects(r) for b in barreiras):
+            escondidos.append(r)
+            gradinhas.append(r)
+            marcas_borda.append(r)   # (encosta na última alternativa: tem que sumir mesmo assim)
+            continue
         # Aba/faixa decorativa em imagem que sai pela borda da folha (ex.: ENEM 2024): não é conteúdo.
         if ((r.x0 < -1 or r.y0 < -1 or r.x1 > largura_pag + 1 or r.y1 > altura + 1)
                 and (r.width < 60 or r.height < 60)):
@@ -925,6 +991,10 @@ def analisar_pagina(pagina, modo="selo", rodape=frozenset(), cabecalho=frozenset
         if any(b.tipo != "instrucao" and b.rect.contains(r) for b in barreiras):
             continue
         if eh_rodape(r):   # etiqueta do número da página etc.
+            continue
+        # moldura da gradinha "GQ" escondida (OBB): some junto com ela
+        if any((g + (-4, -4, 4, 4)).contains(r) for g in gradinhas):
+            escondidos.append(pymupdf.Rect(r))
             continue
         itens.append(Item(pymupdf.Rect(r), "desenho"))
 
@@ -1177,7 +1247,8 @@ def montar_questoes(doc):
             apoio_secao = dono_atual = Apoio(num_pag, b.texto, alvos=[])
             apoios.append(dono_atual)
         else:  # cabeçalho de seção: não entra em imagem nenhuma
-            assunto_atual = nome_do_assunto(b.texto)
+            if not re.fullmatch(r"quest[õo]es\s+de\s+\d{1,3}\s+[ae]\s+\d{1,3}", b.texto, re.I):
+                assunto_atual = nome_do_assunto(b.texto)   # ("Questões de 11 a 18" não é matéria)
             dono_atual = BlocoSolto(num_pag)
             blocos_soltos.append(dono_atual)
 
@@ -1515,6 +1586,7 @@ def montar_pagina_lado_a_lado(num_pag, dados, largura, topo, fundo, abrir, dono,
 def nome_do_assunto(texto_cabecalho):
     """'BLOCO 1 · LÍNGUA PORTUGUESA' -> 'Língua Portuguesa'."""
     texto = re.sub(r"^\s*BLOCO\s+\d+\s*[·\-–:]\s*", "", texto_cabecalho, flags=re.IGNORECASE)
+    texto = re.sub(r"^\s*[A-Z]{1,3}\d{1,2}\s*[·\-–:]\s*", "", texto)   # "MA02 – RENDA FIXA" (OLITEF)
     pequenas = {"de", "da", "do", "das", "dos", "e", "a", "o", "suas", "seus"}
     palavras = texto.lower().split()
     return " ".join(p if (i > 0 and p in pequenas) else p.capitalize()
@@ -1849,6 +1921,57 @@ def trechos_da_imagem(q):
 # ETAPA 6: gabarito e título
 # =====================================================================
 
+PADRAO_LINHA_EM_BRANCO = re.compile(r"\b\d{1,3}\s+A\s+B\s+C\s+D(?:\s+E)?\b")
+
+
+def sem_folha_em_branco(texto):
+    """Folha de respostas em branco ("1 A B C D E" em cada linha, OBB) não é gabarito: sem
+    isso, cada linha viraria "1 -> A". (Só se repetir: uma linha "05" + "A B C D E" de verdade
+    pode acontecer uma vez num gabarito em tabela.)"""
+    if len(PADRAO_LINHA_EM_BRANCO.findall(texto)) >= 3:
+        return PADRAO_LINHA_EM_BRANCO.sub(" ", texto)
+    return texto
+
+
+def respostas_pintadas(doc):
+    """Gabarito em tabela "1 | A | B | C | D | E" em que a certa é a célula PINTADA (OBB: fundo
+    amarelo). O texto não diz qual é a certa, só a cor. Devolve {número: letra} (vazio se não
+    for esse tipo de gabarito)."""
+    respostas = {}
+    for pagina in doc:
+        def colorido(cor):
+            if not cor or len(cor) != 3:
+                return False
+            return max(cor) - min(cor) > 0.15   # nem branco, nem preto, nem cinza
+        fundos = [d["rect"] for d in pagina.get_drawings()
+                  if colorido(d.get("fill")) and d["rect"].width < 120 and d["rect"].height < 40]
+        if not fundos:
+            continue
+        palavras = pagina.get_text("words")
+        meio = lambda w: ((w[0] + w[2]) / 2, (w[1] + w[3]) / 2)
+        for w in palavras:
+            if not re.fullmatch(r"\d{1,3}", w[4]):
+                continue
+            cy = meio(w)[1]
+            letras = [l for l in palavras if re.fullmatch(r"[A-E]", l[4]) and l[0] > w[2]
+                      and abs(meio(l)[1] - cy) < 4 and l[0] - w[2] < 300]
+            if len({l[4] for l in letras}) < 4:
+                continue
+            pintadas = {l[4] for l in letras if any(f.contains(pymupdf.Point(*meio(l))) for f in fundos)}
+            if len(pintadas) == 1:
+                respostas.setdefault(int(w[4]), pintadas.pop())
+    return respostas
+
+
+def texto_do_gabarito(doc):
+    """Texto de um PDF de gabarito para o leitor de gabarito do site. Se as respostas estiverem
+    marcadas por COR (ver respostas_pintadas), devolve "1-D 2-A ..." no lugar da tabela."""
+    pintadas = respostas_pintadas(doc)
+    if len(pintadas) >= 5:
+        return "GABARITO\n" + "\n".join(f"{n}-{l}" for n, l in sorted(pintadas.items()))
+    return "\n".join(p.get_text() for p in doc)
+
+
 def procurar_gabarito(doc, total):
     """Procura um gabarito em TEXTO no PDF (ex.: "GABARITO ... 01 - A 02 - C").
     Só aceita se encontrar exatamente uma letra para cada questão.
@@ -1865,7 +1988,9 @@ def procurar_gabarito(doc, total):
             texto += "\n" + t
     if not achou:
         return None, "a palavra GABARITO não aparece no texto do PDF"
-    pares = re.findall(r"\b(\d{1,2})\s*[-–.:)]?\s*\(?([A-E])\)?\b", texto)
+    texto = sem_folha_em_branco(texto)
+    # "01 - A", "01) A", "Questão 01 – Alternativa B" (OLITEF)
+    pares =re.findall(r"\b(\d{1,2})\s*[-–.:)]?\s*(?:[Aa]lternativa\s+)?\(?([A-E])\)?\b", texto)
     respostas = {}
     for num, letra in pares:
         respostas.setdefault(int(num), letra)
@@ -1918,7 +2043,7 @@ def titulo_da_prova(doc):
     # Olimpíadas (OBMEP, ONC...): a capa só diz "Nível 1" ou "Fase 1 - 2025"; o nome da olimpíada
     # está no cabeçalho das folhas (ou no nome do arquivo). Monta "OBMEP 2025 · Nível 1 · 1ª fase".
     texto_doc = " ".join(p.get_text() for p in doc) + " " + (doc.metadata or {}).get("title", "")
-    sigla = re.search(r"\b(OBMEP|ONC|OBA|OBF|OBQ|OBB|OBMEP Mirim)(?=\d|\b)", texto_doc)
+    sigla = re.search(r"\b(OBMEP|ONC|OBA|OBF|OBQ|OBB|OLITEF|OBMEP Mirim)(?=\d|\b)", texto_doc)
     if sigla and sigla.group(1).lower() not in titulo.lower() and len(titulo) <= 25:
         ano = re.search(r"\b(20\d\d)\b", titulo + " " + texto_capa) or re.search(r"(20\d\d)", texto_doc)
         nivel = re.search(r"\b(?:n[íi]vel\s*([A-Z0-9]{1,5})|(mirim)\s*(\d))\b", titulo + " " + texto_capa, re.IGNORECASE)
@@ -2030,6 +2155,10 @@ def extrair_em_etapas(pdf, nome_pdf="prova.pdf"):
                   for m in [re.match(r"^\(([A-E])\)|^([A-E])\t", it.texto)] if m}
         letras |= {l for t in q.trechos for it in t.itens if it.tipo == "texto" and re.match(r"^[A-E]\)", it.texto)
                    for l in re.findall(r"(?<![A-Za-z])([A-E])\)", it.texto)}
+        # Letra sozinha num círculo, separada do texto (OLITEF: "A \t Piorar..."), às vezes duas
+        # alternativas na mesma linha ("A \t R$ 54,00. \t D \t R$ 72,00.").
+        letras |= {l for t in q.trechos for it in t.itens if it.tipo == "texto" and re.match(r"^[A-E]\s*\t", it.texto)
+                   for l in re.findall(r"(?:^|\t)\s*([A-E])\s*\t", it.texto)}
         # Alternativas em minúscula: "a) 285", "(b) ..." (ex.: Cotuca).
         letras |= {m.group(1).upper() for t in q.trechos for it in t.itens if it.tipo == "texto"
                    for m in [re.match(r"^\(?([a-e])\)(?:\s|$)", it.texto)] if m}
